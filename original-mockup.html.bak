@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>New Workflow (14) Copy — Stack AI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; color: #111; background: #fff; -webkit-font-smoothing: antialiased; }
+  body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; font-size: 13px; }
+
+  /* Top bar */
+  .topbar { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid #eceef1; background: #fff; gap: 12px; flex-shrink: 0; }
+  .topbar .logo { width: 26px; height: 26px; border-radius: 6px; background: linear-gradient(135deg,#ff6a3d,#ff9d3d); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:12px; }
+  .breadcrumb { display: flex; align-items: center; gap: 6px; color: #6b7280; font-size: 13px; }
+  .breadcrumb .folder-ico { width:16px; height:16px; opacity:.6; }
+  .breadcrumb .sep { color:#c9ccd1; }
+  .breadcrumb .current { color:#111; font-weight: 500; }
+  .top-tabs { margin-left: auto; display: flex; gap: 22px; font-size: 13px; }
+  .top-tabs a { color:#6b7280; text-decoration:none; padding: 4px 2px; }
+  .top-tabs a.active { color:#111; font-weight:600; }
+  .top-right { display:flex; align-items:center; gap: 10px; margin-left: 22px; }
+  .version-pill { background:#f3f4f6; color:#374151; padding: 4px 8px; border-radius: 6px; font-size:12px; font-weight:500; }
+  .toggle { width: 40px; height: 22px; background: #111; border-radius: 20px; position: relative; cursor:pointer; }
+  .toggle::after { content:""; position:absolute; width:16px; height:16px; background:#fff; border-radius:50%; top:3px; right:3px; }
+  .icon-btn { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer; color:#6b7280; }
+  .icon-btn:hover { background:#f3f4f6; }
+  .run-btn { display:flex; align-items:center; gap:6px; padding: 6px 12px; border:1px solid #e5e7eb; border-radius: 8px; background:#fff; font-weight:500; cursor:pointer; }
+  .publish-btn { display:flex; align-items:center; gap:6px; padding: 6px 12px; border-radius: 8px; background:#111; color:#fff; font-weight:500; cursor:pointer; position:relative; }
+  .publish-btn .badge { position:absolute; top:-3px; right:-3px; width:10px; height:10px; background:#3b82f6; border-radius:50%; border:2px solid #fff; }
+  .kebab { color:#6b7280; padding: 0 4px; cursor:pointer; }
+
+  /* Main body */
+  .main { flex:1; display:flex; min-height:0; }
+
+  /* Left rail */
+  .rail { width: 56px; background:#fff; border-right:1px solid #eceef1; display:flex; flex-direction:column; align-items:center; padding: 10px 0; flex-shrink:0; }
+  .rail .rail-icon { width:32px; height:32px; display:flex; align-items:center; justify-content:center; margin-bottom:6px; color:#6b7280; border-radius:8px; cursor:pointer; }
+  .rail .rail-icon:hover { background:#f3f4f6; }
+  .rail .rail-icon.brand { color:#ff6a3d; }
+  .rail .spacer { flex:1; }
+  .rail .user-avatar { width:28px; height:28px; border-radius:50%; background:#111; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; }
+  .rail .notif { position:relative; }
+  .rail .notif::after { content:""; position:absolute; top:6px; right:6px; width:8px; height:8px; background:#3b82f6; border-radius:50%; border:2px solid #fff; }
+
+  /* Canvas */
+  .canvas { flex:1; position:relative; background-color:#fcfcfc; background-image: radial-gradient(#e3e3e1 1px, transparent 1px); background-size: 22px 22px; overflow:hidden; }
+
+  .run-chip { position:absolute; top: 32px; left: 100px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding: 6px 12px; display:flex; align-items:center; gap:6px; font-size:13px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+
+  .node { position:absolute; background:#fff; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px #ececec; padding: 14px; width: 260px; }
+  .node.selected { box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 0 0 1.5px #d0d3d8; }
+  .node .header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .node .header .ico { width:26px; height:26px; border-radius:7px; background:#f5f5f6; display:flex; align-items:center; justify-content:center; color:#4b5563; flex-shrink:0; }
+  .node .header .title { font-weight:600; font-size:13.5px; color:#111; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .node .desc { color:#6b7280; font-size:12.5px; line-height:1.45; margin-bottom:12px; }
+  .node .footer { border-top:1px solid #f0f0f2; padding-top:8px; margin-top:4px; display:flex; align-items:center; justify-content:space-between; color:#6b7280; font-size:11.5px; }
+  .node .footer .left { display:flex; align-items:center; gap:4px; }
+  .node .footer .right { display:flex; gap:8px; }
+
+  .node .port { position:absolute; top:50%; transform:translateY(-50%); width:12px; height:12px; background:#fff; border:1.5px solid #cfd2d7; border-radius:3px; }
+  .node .port.left { left:-6px; }
+  .node .port.right { right:-6px; }
+
+  #node-schedule { top: 220px; left: 100px; }
+  #node-replay { top: 260px; left: 470px; box-shadow: 0 4px 14px rgba(0,0,0,0.06), 0 0 0 1.5px #b7bac0; }
+
+  .edge-svg { position:absolute; inset:0; pointer-events:none; }
+
+  /* Bottom toolbar */
+  .bottom-toolbar { position:absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display:flex; align-items:center; gap:4px; background:#fff; border:1px solid #e5e7eb; border-radius: 10px; padding: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .bottom-toolbar .ask-ai { display:flex; align-items:center; gap:6px; padding: 6px 10px; background:#f4f0ff; color:#6d28d9; border-radius:7px; font-weight:500; cursor:pointer; }
+  .bottom-toolbar .add-btn { display:flex; align-items:center; gap:6px; padding: 6px 10px; background:#111; color:#fff; border-radius:7px; font-weight:500; cursor:pointer; }
+  .bottom-toolbar .tool-ico { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:#4b5563; cursor:pointer; }
+  .bottom-toolbar .tool-ico:hover { background:#f3f4f6; }
+  .bottom-toolbar .divider { width:1px; height: 18px; background:#e5e7eb; margin: 0 4px; }
+
+  /* Inspector */
+  .inspector { width: 380px; border-left:1px solid #eceef1; background:#fff; display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; }
+  .inspector .header { padding: 14px 16px 10px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f3f4f6; }
+  .inspector .header .ico { width:26px; height:26px; border-radius:7px; background:#f5f5f6; display:flex; align-items:center; justify-content:center; color:#4b5563; }
+  .inspector .header .title { font-weight:600; font-size:14px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .inspector .header .action-id { background:#f3f4f6; color:#4b5563; padding: 3px 8px; border-radius: 6px; font-size:11.5px; font-weight:500; }
+  .inspector .header-actions { display:flex; gap:2px; margin-left:6px; }
+  .inspector .header-actions .icon-btn { width:26px; height:26px; }
+
+  .inspector .desc { padding: 10px 16px 14px; color:#6b7280; font-size:12.5px; line-height:1.5; border-bottom:1px solid #f3f4f6; }
+
+  .inspector .field { padding: 12px 16px; border-bottom:1px solid #f3f4f6; }
+  .inspector .field label { display:block; font-size:12.5px; font-weight:500; color:#374151; margin-bottom:6px; text-decoration: underline; text-decoration-color: #d0d3d8; text-underline-offset: 3px; }
+  .inspector .select { display:flex; align-items:center; gap:8px; padding: 8px 10px; border:1px solid #e5e7eb; border-radius: 8px; background:#fff; cursor:pointer; }
+  .inspector .select .ico { width:20px; height:20px; display:flex; align-items:center; justify-content:center; color:#4b5563; }
+  .inspector .select .val { flex:1; font-size:13px; }
+  .inspector .select .chev { color:#9ca3af; }
+
+  .inspector .section { padding: 14px 16px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:500; color:#111; }
+  .inspector .section .lead { color:#4b5563; display:flex; align-items:center; }
+  .inspector .section .chev-right { margin-left:auto; color:#9ca3af; }
+
+  .new-recording-btn { display:flex; align-items:center; gap:8px; padding: 8px 12px; border:1px solid #e5e7eb; border-radius: 8px; background:#fff; font-size:13px; font-weight:500; color:#111; cursor:pointer; width:100%; }
+  .new-recording-btn:hover { background:#f9fafb; }
+  .new-recording-btn svg { color:#6b7280; }
+  [hidden] { display: none !important; }
+
+  /* General section (expanded) */
+  .general-body { padding: 14px 16px 18px; border-bottom:1px solid #f3f4f6; }
+  .seg-tabs { display:flex; justify-content:center; }
+  .seg-tabs .seg-group { display:inline-flex; align-items:center; gap:2px; background:#f3f4f6; border-radius:9px; padding:3px; }
+  .seg-tabs .seg-btn { padding:6px 14px; border-radius:7px; font-size:13px; font-weight:500; color:#5f6368; cursor:pointer; white-space:nowrap; border:1px solid transparent; }
+  .seg-tabs .seg-btn.active { background:#fff; color:#111; border-color:#e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.08); }
+  .seg-tabs .seg-btn:not(.active):hover { color:#374151; }
+
+  /* Inputs section (expanded) */
+  .inputs-header { padding: 14px 16px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:10px; font-size:13px; font-weight:500; color:#111; }
+  .inputs-header .lead { color:#4b5563; display:flex; align-items:center; }
+  .inputs-header .required-pill { display:flex; align-items:center; gap:5px; background:#fef4e5; color:#b45309; padding: 3px 9px; border-radius: 7px; font-size:11.5px; font-weight:600; }
+  .inputs-header .chev-up { margin-left:auto; color:#9ca3af; display:flex; }
+
+  .inputs-body { padding: 12px 16px 16px; border-bottom:1px solid #f3f4f6; }
+  .view-toggle { display:inline-flex; background:#f3f4f6; border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 14px; }
+  .view-toggle .vt-btn { width:30px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:#6b7280; cursor:pointer; }
+  .view-toggle .vt-btn.active { background:#fff; color:#111; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+  .nested { padding-left: 20px; border-left: 1px solid #eceef1; margin-left: 4px; }
+  .nested-field-head { display:flex; align-items:center; gap:6px; margin-bottom: 8px; }
+  .nested-field-head .disc { color:#6b7280; display:flex; cursor:pointer; }
+  .nested-field-head .fname { font-size:13px; font-weight:600; color:#111; text-decoration: underline; text-decoration-color:#d0d3d8; text-underline-offset: 3px; }
+  .nested-field-head .req { color:#ef4444; font-weight:700; }
+  .nested-field-head .type-label { margin-left:auto; font-size:12.5px; color:#9ca3af; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  .select-row { display:flex; align-items:center; gap:8px; margin-bottom: 12px; }
+  .select-row .select { flex:1; }
+  .select-row .select .val.placeholder { color:#9ca3af; }
+  .select-row .clear-btn { width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:#9ca3af; cursor:pointer; flex-shrink:0; }
+  .select-row .clear-btn:hover { background:#f3f4f6; color:#6b7280; }
+
+  .info-callout { display:flex; gap:10px; background:#eff5ff; border:1px solid #dbe6fe; border-radius: 10px; padding: 12px 12px; margin-bottom: 14px; font-size:12.5px; line-height:1.5; color:#1e40af; }
+  .info-callout .info-ico { color:#3b82f6; flex-shrink:0; margin-top:1px; }
+  .info-callout a { color:#1d4ed8; text-decoration: underline; }
+
+  .helper-text { font-size:12.5px; line-height:1.5; color:#6b7280; margin-top: 12px; }
+
+  .side-tab { position:absolute; right: 380px; top: 260px; width:22px; height:34px; border-radius: 6px 0 0 6px; background:#fff; border:1px solid #eceef1; border-right:none; display:flex; align-items:center; justify-content:center; color:#6b7280; cursor:pointer; }
+
+  /* Sandbox modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(17,17,17,0.45); display:flex; align-items:stretch; justify-content:center; padding: 40px; z-index: 1000; }
+  .sandbox-modal { background:#fff; border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); width: 100%; max-width: 1360px; display:flex; flex-direction:column; overflow:hidden; }
+  .sandbox-header { display:flex; align-items:center; gap:10px; padding: 14px 18px; border-bottom: 1px solid #eceef1; flex-shrink:0; }
+  .sandbox-header .title { font-weight:600; font-size:15px; display:flex; align-items:center; gap:8px; }
+  .sandbox-header .globe { color:#6b7280; }
+  .sandbox-header .close { margin-left:auto; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:8px; color:#6b7280; cursor:pointer; }
+  .sandbox-header .close:hover { background:#f3f4f6; }
+
+  /* Fake Chrome browser */
+  .browser { flex:1; display:flex; flex-direction:column; background:#f1f3f4; min-height:0; }
+  .browser .tabs { display:flex; align-items:flex-end; padding: 8px 10px 0 10px; gap: 4px; background:#dfe1e5; }
+  .browser .tab { display:flex; align-items:center; gap: 8px; padding: 8px 12px; background:#f1f3f4; border-radius: 8px 8px 0 0; font-size: 12px; color:#3c4043; max-width: 220px; }
+  .browser .tab .fav { width:14px; height:14px; color:#5f6368; flex-shrink:0; }
+  .browser .tab .tab-title { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .browser .tab .tab-close { color:#5f6368; cursor:pointer; }
+  .browser .tab-new { display:flex; align-items:center; justify-content:center; width:28px; height:28px; color:#5f6368; cursor:pointer; align-self:center; margin-bottom:4px; }
+  .browser .toolbar { display:flex; align-items:center; gap:8px; padding: 8px 12px; background:#f1f3f4; position:relative; }
+  .browser .nav-btn { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#5f6368; cursor:pointer; }
+  .browser .nav-btn:hover { background:#e6e8eb; }
+  .browser .nav-btn.disabled { color:#bdc1c6; cursor:default; }
+  .browser .omnibox { flex:1; display:flex; align-items:center; gap:10px; background:#fff; border-radius: 20px; padding: 7px 14px; font-size: 13px; color:#3c4043; box-shadow: inset 0 0 0 1px transparent; }
+  .browser .omnibox .site-lock { display:flex; align-items:center; gap:6px; padding: 2px 8px; border-radius: 14px; background:#e8eaed; font-size:11.5px; color:#3c4043; }
+  .browser .omnibox .url { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#3c4043; }
+  .browser .omnibox .omni-ico { color:#5f6368; cursor:pointer; }
+  .browser .toolbar .avatar { width:26px; height:26px; border-radius:50%; background:#1a73e8; color:#fff; font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; }
+  .browser .viewport { flex:1; background:#fff; overflow:auto; padding: 80px 48px 48px; color:#202124; min-height:0; display:flex; align-items:center; justify-content:center; }
+  .instructions { width: 100%; max-width: 520px; }
+  .instructions h2 { font-size: 22px; font-weight: 700; margin-bottom: 24px; text-align:center; color:#111; }
+  .instructions .step { display:flex; align-items:center; gap:14px; padding: 14px 18px; border-radius: 10px; background:#f6f7f9; margin-bottom: 12px; font-size: 14px; color:#374151; }
+  .instructions .step .num { width:22px; height:22px; border-radius:50%; background:#e5e7eb; color:#4b5563; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; flex-shrink:0; }
+
+  /* Extension bar icons in Chrome toolbar */
+  .browser .ext-bar { display:flex; align-items:center; gap:2px; }
+  .browser .ext-ico { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#5f6368; cursor:pointer; position:relative; }
+  .browser .ext-ico:hover { background:#e6e8eb; }
+  .browser .ext-ico.stackai .sa-logo { width:20px; height:20px; }
+
+  /* Stack AI logo mark */
+  .sa-logo { display:inline-flex; align-items:center; justify-content:center; }
+  .sa-logo svg { width:100%; height:100%; display:block; }
+
+  /* Blinking pointer to extension */
+  .ext-pointer { position:absolute; top: 46px; right: 92px; display:flex; flex-direction:column; align-items:flex-end; gap:6px; pointer-events:none; animation: bob 1.4s ease-in-out infinite; z-index: 5; }
+  .ext-pointer .arrow-up { color:#2563eb; margin-right: 10px; }
+  .ext-pointer .tip { background:#2563eb; color:#fff; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; display:flex; align-items:center; gap:8px; white-space:nowrap; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
+  .ext-pointer .tip .sa-logo { width:18px; height:18px; }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-6px); opacity: 0.75; }
+  }
+
+  /* Icons */
+  svg.i { display:block; }
+
+  /* Dark mode (disabled — force light) */
+  @media (prefers-color-scheme: dark) and (max-width: 0px) {
+    body { background:#0f0f10; color:#e5e7eb; }
+    .topbar, .rail, .inspector, .node, .run-chip, .bottom-toolbar { background:#171718; border-color:#26272a; color:#e5e7eb; }
+    .topbar { border-bottom-color:#26272a; }
+    .rail, .inspector { border-color:#26272a; }
+    .canvas { background-color:#0f0f10; background-image: radial-gradient(#2a2b2f 1px, transparent 1px); }
+    .breadcrumb, .top-tabs a, .icon-btn, .kebab, .node .desc, .node .footer, .inspector .desc, .inspector .select .chev, .inspector .section .chev-right { color:#9ca3af; }
+    .top-tabs a.active, .breadcrumb .current, .node .header .title, .inspector .header .title, .inspector .section { color:#f3f4f6; }
+    .node .header .ico, .inspector .header .ico, .inspector .select .ico, .bottom-toolbar .tool-ico { background:#26272a; color:#d1d5db; }
+    .node, .run-chip, .inspector .select, .bottom-toolbar { border-color:#26272a; }
+    .node { box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px #26272a; }
+    #node-replay { box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 0 1.5px #3f4046; }
+    .node .footer { border-top-color:#26272a; }
+    .inspector .field, .inspector .section, .inspector .desc, .inspector .header { border-bottom-color:#232326; }
+    .inspector .field label { color:#d1d5db; }
+    .version-pill, .inspector .header .action-id { background:#26272a; color:#d1d5db; }
+    .publish-btn { background:#f3f4f6; color:#111; }
+    .run-btn { background:#171718; color:#e5e7eb; border-color:#2c2d31; }
+    .toggle { background:#f3f4f6; }
+    .toggle::after { background:#111; }
+    .bottom-toolbar .add-btn { background:#f3f4f6; color:#111; }
+    .bottom-toolbar .ask-ai { background:#2b1f4a; color:#c4b5fd; }
+    .side-tab { background:#171718; border-color:#26272a; color:#9ca3af; }
+    .node .port { background:#171718; border-color:#3f4046; }
+    .rail .user-avatar { background:#f3f4f6; color:#111; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="logo"><svg viewBox="0 0 247 252" width="15" height="15" fill="#fff" xmlns="http://www.w3.org/2000/svg"><path d="M246.977 202.478v-56.281c0-5.389-2.84-10.383-7.471-13.171l-49.898-29.894a3.836 3.836 0 0 1-1.862-3.298v-58.21c0-4.041-2.118-7.804-5.609-9.871L133.938 2.88a20.387 20.387 0 0 0-20.899 0l-48.2 28.873c-3.467 2.09-5.608 5.83-5.608 9.871V99.88a3.839 3.839 0 0 1-1.862 3.299L7.47 133.003A15.354 15.354 0 0 0 0 146.173v56.282c0 7.735 3.863 14.889 10.1 18.652l46.175 28.013a15.404 15.404 0 0 0 15.965 0l49.503-29.778c1.21-.721 2.723-.697 3.933.023l51.062 30.963a11.578 11.578 0 0 0 11.986 0l48.175-29.221C243.137 217.321 247 210.19 247 202.455l-.023.023Zm-128.865 0c0 4.135-1.978 7.898-5.097 9.802l-38.843 23.553c-3.188 1.928-7.005-.766-7.005-4.947v-45.899c0-4.134 1.978-7.897 5.097-9.802l38.843-23.553c3.188-1.928 7.005.767 7.005 4.948v45.898Zm59.231-102.366c0 4.135-1.978 7.898-5.097 9.803l-38.843 23.553c-3.189 1.928-7.005-.767-7.005-4.948V82.622c0-4.135 1.978-7.898 5.096-9.802l38.844-23.553c3.188-1.928 7.005.766 7.005 4.947v45.898Zm59.231 102.366c0 4.135-1.979 7.898-5.097 9.802l-38.844 23.553c-3.188 1.928-7.005-.766-7.005-4.947v-45.899c0-4.134 1.978-7.897 5.097-9.802l38.843-23.553c3.189-1.928 7.006.767 7.006 4.948v45.898Z"/></svg></div>
+  <div class="breadcrumb">
+    <svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span>dhidalgo@stack-ai.com Personal Folder</span>
+    <span class="sep">/</span>
+    <span class="current">New Workflow (14) Copy</span>
+  </div>
+  <div class="top-tabs">
+    <a href="#" class="active">Workflow</a>
+    <a href="#">Interface</a>
+    <a href="#">Analytics</a>
+    <a href="#">Manager</a>
+    <a href="#">Evaluator</a>
+  </div>
+  <div class="top-right">
+    <div class="version-pill">11.0.0</div>
+    <div class="toggle" title="Theme toggle"></div>
+    <div class="icon-btn" title="Settings">
+      <svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </div>
+    <div class="icon-btn" title="Save">
+      <svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    </div>
+    <button class="run-btn">
+      <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+      Run
+    </button>
+    <button class="publish-btn">
+      Publish
+      <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      <span class="badge"></span>
+    </button>
+    <div class="kebab">
+      <svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Left rail -->
+  <div class="rail">
+    <div class="rail-icon brand"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L22 8 L12 14 L2 8 Z"/><path d="M2 12 L12 18 L22 12" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2h-4v-8h-6v8H5a2 2 0 0 1-2-2z"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 8 L22 9 L17 14 L18 21 L12 18 L6 21 L7 14 L2 9 L9 8 Z"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><path d="M6 9v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/><path d="M12 14v1"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="4" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="20" y1="20" x2="20" y2="14"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+
+    <div class="spacer"></div>
+
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div>
+    <div class="rail-icon notif"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="rail-icon"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+    <div class="user-avatar">D</div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas">
+    <div class="run-chip">
+      <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+      Run
+    </div>
+
+    <svg class="edge-svg">
+      <path d="M 360 300 C 415 300, 415 340, 470 340" stroke="#c9ccd1" stroke-width="1.5" fill="none"/>
+    </svg>
+
+    <!-- Scheduled Execution -->
+    <div class="node" id="node-schedule">
+      <span class="port left"></span>
+      <span class="port right"></span>
+      <div class="header">
+        <div class="ico">
+          <svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="17" cy="16" r="2"/></svg>
+        </div>
+        <div class="title">Scheduled Execution 2</div>
+      </div>
+      <div class="desc">Trigger a workflow execution at a specific time.</div>
+      <div class="footer">
+        <div class="left">
+          <svg class="i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          View Results
+        </div>
+        <div class="right"><span>0.00 sec</span></div>
+      </div>
+    </div>
+
+    <!-- Browser Navigation Replay -->
+    <div class="node selected" id="node-replay">
+      <span class="port left"></span>
+      <span class="port right"></span>
+      <div class="header">
+        <div class="ico">
+          <svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="8" y1="22" x2="16" y2="22"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
+        </div>
+        <div class="title">Browser Navigation Repla...</div>
+      </div>
+      <div class="desc">Replay a saved browser navigation recording from the shared browser...</div>
+      <div class="footer">
+        <div class="left">
+          <svg class="i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          View Results
+        </div>
+        <div class="right"><span>0.00 sec</span><span>v1.0.0</span></div>
+      </div>
+    </div>
+
+    <!-- Bottom toolbar -->
+    <div class="bottom-toolbar">
+      <div class="ask-ai">
+        <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L14 9 L21 10 L15.5 14.5 L17 21 L12 17.5 L7 21 L8.5 14.5 L3 10 L10 9 Z"/></svg>
+        Ask AI
+      </div>
+      <div class="add-btn">
+        <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add
+      </div>
+      <div class="divider"></div>
+      <div class="tool-ico" title="Undo"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></div>
+      <div class="tool-ico" title="Redo"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg></div>
+      <div class="divider"></div>
+      <div class="tool-ico" title="Zoom in"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg></div>
+      <div class="tool-ico" title="Zoom out"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg></div>
+      <div class="tool-ico" title="Select"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 L4 18 L8.5 14 L11 20 L13.5 19 L11 13 L17 13 Z"/></svg></div>
+      <div class="tool-ico" title="Fit"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/></svg></div>
+      <div class="tool-ico" title="Page"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="tool-ico" title="Layout"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L22 8 L12 14 L2 8 Z"/><path d="M2 16 L12 22 L22 16"/></svg></div>
+      <div class="tool-ico" title="Screenshot"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+    </div>
+  </div>
+
+  <!-- Collapse tab -->
+  <div class="side-tab">
+    <svg class="i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+  </div>
+
+  <!-- Inspector -->
+  <div class="inspector" id="inspector">
+    <div class="header">
+      <div class="ico">
+        <svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="8" y1="22" x2="16" y2="22"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
+      </div>
+      <div class="title">Browser Navigation Repl...</div>
+      <div class="action-id">action-3</div>
+      <div class="header-actions">
+        <div class="icon-btn"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+        <div class="icon-btn"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+        <div class="icon-btn"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+        <div class="icon-btn" id="inspector-close"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      </div>
+    </div>
+
+    <div class="desc">Replay a saved browser navigation recording from the shared browser navigation sandbox</div>
+
+    <div class="field">
+      <label>Provider</label>
+      <div class="select">
+        <div class="ico"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="8" y1="22" x2="16" y2="22"/><line x1="12" y1="18" x2="12" y2="22"/></svg></div>
+        <div class="val">StackAI Computer</div>
+        <div class="chev"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Action</label>
+      <div class="select">
+        <div class="ico" style="color:#ff6a3d;"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+        <div class="val">Browser Navigation Replay</div>
+        <div class="chev"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+    </div>
+
+    <div class="inputs-header">
+      <span class="lead"><svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      General
+      <span class="chev-up"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg></span>
+    </div>
+
+    <div class="general-body">
+      <div class="seg-tabs">
+        <div class="seg-group" role="tablist">
+          <div class="seg-btn active" data-mode="ai">Browser Navigation AI</div>
+          <div class="seg-btn" data-mode="manual">Browser Navigation Manual</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="inputs-header">
+      <span class="lead"><svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><polyline points="8 11 12 15 16 11"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+      Inputs
+      <span class="required-pill">
+        <svg class="i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Has required fields
+      </span>
+      <span class="chev-up"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg></span>
+    </div>
+
+    <div class="inputs-body">
+      <div class="view-toggle">
+        <div class="vt-btn active" title="Tree view"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><line x1="4" y1="6" x2="4.01" y2="6"/><line x1="4" y1="12" x2="4.01" y2="12"/><line x1="4" y1="18" x2="4.01" y2="18"/></svg></div>
+        <div class="vt-btn" title="JSON view"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 4H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"/></svg></div>
+      </div>
+
+      <div class="nested">
+        <div class="nested-field-head">
+          <span class="disc"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+          <span class="fname">Saved Recording</span>
+          <span class="req">*</span>
+          <span class="type-label">string</span>
+        </div>
+
+        <div class="select-row">
+          <div class="select">
+            <div class="val placeholder">Select...</div>
+            <div class="chev"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+          </div>
+          <div class="clear-btn" title="Clear"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        </div>
+
+        <div class="info-callout">
+          <span class="info-ico"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+          <span>Record and replay browser workflows. Save a recording to make it appear in the dropdown. <a href="#">Watch demo</a></span>
+        </div>
+
+        <button id="new-recording-btn" class="new-recording-btn" style="width:auto;">
+          <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          New recording
+        </button>
+
+        <div class="helper-text">2 saved recordings available in the shared browser navigation sandbox.</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <span class="lead"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
+      Test Action
+      <span class="chev-right"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+    </div>
+
+    <div class="section">
+      <span class="lead"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"/><polyline points="12 2 12 15"/><polyline points="8 6 12 2 16 6"/></svg></span>
+      Outputs
+      <span class="chev-right"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+    </div>
+
+    <div class="section">
+      <span class="lead"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l6 6"/><circle cx="16" cy="16" r="4"/><path d="M20 20l-2-2"/></svg></span>
+      Advanced Settings
+      <span class="chev-right"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+    </div>
+  </div>
+</div>
+
+<!-- Browser Navigation Sandbox modal -->
+<div class="modal-backdrop" id="sandbox-modal" hidden>
+  <div class="sandbox-modal">
+    <div class="sandbox-header">
+      <div class="title">
+        <span class="globe"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg></span>
+        Browser Navigation Sandbox
+      </div>
+      <div class="close">
+        <svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+
+    <div class="browser">
+      <div class="tabs">
+        <div class="tab">
+          <span class="fav"><svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg></span>
+          <span class="tab-title">Stack AI — Sandbox</span>
+          <span class="tab-close"><svg class="i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+        </div>
+        <div class="tab-new">
+          <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="nav-btn"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></div>
+        <div class="nav-btn disabled"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        <div class="nav-btn"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
+
+        <div class="omnibox">
+          <div class="site-lock">
+            <svg class="i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            https
+          </div>
+          <span class="url">stack-ai.com/sandbox/browser-navigation</span>
+          <span class="omni-ico"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2"/></svg></span>
+          <span class="omni-ico"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
+        </div>
+
+        <div class="ext-bar">
+          <div class="ext-ico" title="Reading list"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg></div>
+          <div class="ext-ico" title="Bookmark"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2"/></svg></div>
+          <div class="ext-ico stackai" title="Stack AI Recorder"><span class="sa-logo"><svg viewBox="0 0 247 252" fill="#FF6B2C" xmlns="http://www.w3.org/2000/svg"><path d="M246.977 202.478v-56.281c0-5.389-2.84-10.383-7.471-13.171l-49.898-29.894a3.836 3.836 0 0 1-1.862-3.298v-58.21c0-4.041-2.118-7.804-5.609-9.871L133.938 2.88a20.387 20.387 0 0 0-20.899 0l-48.2 28.873c-3.467 2.09-5.608 5.83-5.608 9.871V99.88a3.839 3.839 0 0 1-1.862 3.299L7.47 133.003A15.354 15.354 0 0 0 0 146.173v56.282c0 7.735 3.863 14.889 10.1 18.652l46.175 28.013a15.404 15.404 0 0 0 15.965 0l49.503-29.778c1.21-.721 2.723-.697 3.933.023l51.062 30.963a11.578 11.578 0 0 0 11.986 0l48.175-29.221C243.137 217.321 247 210.19 247 202.455l-.023.023Zm-128.865 0c0 4.135-1.978 7.898-5.097 9.802l-38.843 23.553c-3.188 1.928-7.005-.766-7.005-4.947v-45.899c0-4.134 1.978-7.897 5.097-9.802l38.843-23.553c3.188-1.928 7.005.767 7.005 4.948v45.898Zm59.231-102.366c0 4.135-1.978 7.898-5.097 9.803l-38.843 23.553c-3.189 1.928-7.005-.767-7.005-4.948V82.622c0-4.135 1.978-7.898 5.096-9.802l38.844-23.553c3.188-1.928 7.005.766 7.005 4.947v45.898Zm59.231 102.366c0 4.135-1.979 7.898-5.097 9.802l-38.844 23.553c-3.188 1.928-7.005-.766-7.005-4.947v-45.899c0-4.134 1.978-7.897 5.097-9.802l38.843-23.553c3.189-1.928 7.006.767 7.006 4.948v45.898Z"/></svg></span></div>
+          <div class="ext-ico" title="Extensions"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h4a2 2 0 0 1 2 2v4h-2a2 2 0 0 0 0 4h2v4a2 2 0 0 1-2 2h-4v-2a2 2 0 0 0-4 0v2H6a2 2 0 0 1-2-2v-4H2a2 2 0 0 0 0-4h2V6a2 2 0 0 1 2-2h4V2a2 2 0 0 1 4 0v2z"/></svg></div>
+          <div class="ext-ico" title="Profile"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        </div>
+        <div class="avatar">D</div>
+
+        <!-- Blinking arrow pointing to the Stack AI extension icon -->
+        <div class="ext-pointer">
+          <svg class="arrow-up" width="22" height="24" viewBox="0 0 22 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="11" y1="22" x2="11" y2="4"/><polyline points="4 11 11 4 18 11"/></svg>
+          <div class="tip"><span>Click</span> <span class="sa-logo"><svg viewBox="0 0 247 252" fill="#fff" xmlns="http://www.w3.org/2000/svg"><path d="M246.977 202.478v-56.281c0-5.389-2.84-10.383-7.471-13.171l-49.898-29.894a3.836 3.836 0 0 1-1.862-3.298v-58.21c0-4.041-2.118-7.804-5.609-9.871L133.938 2.88a20.387 20.387 0 0 0-20.899 0l-48.2 28.873c-3.467 2.09-5.608 5.83-5.608 9.871V99.88a3.839 3.839 0 0 1-1.862 3.299L7.47 133.003A15.354 15.354 0 0 0 0 146.173v56.282c0 7.735 3.863 14.889 10.1 18.652l46.175 28.013a15.404 15.404 0 0 0 15.965 0l49.503-29.778c1.21-.721 2.723-.697 3.933.023l51.062 30.963a11.578 11.578 0 0 0 11.986 0l48.175-29.221C243.137 217.321 247 210.19 247 202.455l-.023.023Zm-128.865 0c0 4.135-1.978 7.898-5.097 9.802l-38.843 23.553c-3.188 1.928-7.005-.766-7.005-4.947v-45.899c0-4.134 1.978-7.897 5.097-9.802l38.843-23.553c3.188-1.928 7.005.767 7.005 4.948v45.898Zm59.231-102.366c0 4.135-1.978 7.898-5.097 9.803l-38.843 23.553c-3.189 1.928-7.005-.767-7.005-4.948V82.622c0-4.135 1.978-7.898 5.096-9.802l38.844-23.553c3.188-1.928 7.005.766 7.005 4.947v45.898Zm59.231 102.366c0 4.135-1.979 7.898-5.097 9.802l-38.844 23.553c-3.188 1.928-7.005-.766-7.005-4.947v-45.899c0-4.134 1.978-7.897 5.097-9.802l38.843-23.553c3.189-1.928 7.006.767 7.006 4.948v45.898Z"/></svg></span> <span>to open the recorder</span></div>
+        </div>
+      </div>
+
+      <div class="viewport">
+        <div class="instructions">
+          <h2>How to record the browser navigation?</h2>
+          <div class="step"><span class="num">1</span>Open the extension in this sandbox browser</div>
+          <div class="step"><span class="num">2</span>Click "Start Recording"</div>
+          <div class="step"><span class="num">3</span>Navigate and interact with any site</div>
+          <div class="step"><span class="num">4</span>Stop and save your workflow</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const modal = document.getElementById('sandbox-modal');
+    const openBtn = document.getElementById('new-recording-btn');
+    const closeBtn = modal.querySelector('.close');
+
+    const open = () => { modal.hidden = false; };
+    const close = () => { modal.hidden = true; };
+
+    openBtn.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) close();
+    });
+
+    // Close the inspector (settings side panel) via the X button or by clicking outside it.
+    const inspector = document.getElementById('inspector');
+    const inspectorClose = document.getElementById('inspector-close');
+    const hideInspector = () => { inspector.hidden = true; };
+
+    if (inspectorClose) inspectorClose.addEventListener('click', hideInspector);
+
+    document.addEventListener('click', (e) => {
+      if (inspector.hidden) return;
+      // Ignore clicks inside the inspector, on the modal, or on the node that opened it.
+      if (inspector.contains(e.target)) return;
+      if (e.target.closest && (e.target.closest('.modal-backdrop') || e.target.closest('.node'))) return;
+      hideInspector();
+    });
+
+    document.querySelectorAll('.seg-tabs .seg-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        btn.parentElement.querySelectorAll('.seg-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
