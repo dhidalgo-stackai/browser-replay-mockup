@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { StackAILogo, X, ChevronDown, ChevronUp, InfoCircle, ListView, Play } from './icons.jsx'
+import { StackAILogo, X, ChevronDown, ChevronUp, InfoCircle, ListView, Play, Cursor, Globe, ExternalLink } from './icons.jsx'
 
 function TrashIcon({ size = 14 }) {
   return (
@@ -80,6 +80,15 @@ function NavigateIcon() {
   )
 }
 
+function stepIcon(label) {
+  if (/^Navigate\b/.test(label)) return <Globe size={12} />
+  if (/^Click\b/.test(label)) return <Cursor size={12} />
+  if (/^Type\b/.test(label)) return <PencilIcon size={11} />
+  if (/^Select\b/.test(label)) return <ChevronDown size={12} />
+  if (/^Check\b/.test(label)) return <CheckIcon size={11} />
+  return <NavigateIcon />
+}
+
 function StepRow({ index, label, last, onEdit, state = 'idle' }) {
   const isDone = state === 'done'
   const isActive = state === 'active'
@@ -91,7 +100,7 @@ function StepRow({ index, label, last, onEdit, state = 'idle' }) {
       )}
       <span
         className={
-          'relative z-10 flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full border ' +
+          'relative z-10 flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md border ' +
           (isDone
             ? 'border-emerald-500 bg-emerald-500 text-white'
             : isActive
@@ -104,22 +113,25 @@ function StepRow({ index, label, last, onEdit, state = 'idle' }) {
         ) : isActive ? (
           <span className="h-[10px] w-[10px] animate-spin rounded-full border-[1.5px] border-blue-200 border-t-blue-600" />
         ) : (
-          <NavigateIcon />
+          stepIcon(label)
         )}
       </span>
-      <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+      <div
+        onClick={onEdit}
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-colors group-hover:border-gray-300 group-hover:bg-gray-50"
+      >
         <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] text-ink">
           {label}
         </span>
-        {showEdit && (
-          <button
-            onClick={onEdit}
-            title="Edit step"
-            className="pointer-events-none flex flex-shrink-0 cursor-pointer items-center justify-center text-gray-500 opacity-0 transition-opacity hover:text-ink group-hover:pointer-events-auto group-hover:opacity-100"
-          >
-            <PencilIcon size={12} />
-          </button>
-        )}
+        <button
+          onClick={onEdit}
+          className="group/edit pointer-events-none relative flex flex-shrink-0 cursor-pointer items-center justify-center text-gray-400 opacity-0 transition-opacity hover:text-ink group-hover:pointer-events-auto group-hover:opacity-100"
+        >
+          <PencilIcon size={12} />
+          <span className="pointer-events-none absolute bottom-full right-0 z-20 mb-1 hidden whitespace-nowrap rounded-md bg-ink px-2 py-1 text-[11px] font-normal text-white shadow-lg group-hover/edit:block">
+            Edit step
+          </span>
+        </button>
       </div>
     </div>
   )
@@ -154,7 +166,7 @@ function CollapsibleSection({ icon, label, trailing, defaultOpen = true, content
         </span>
       </div>
       {open && (
-        <div className={`${fill ? 'min-h-0 flex-1 overflow-y-auto' : ''} border-b border-gray-100 px-4 pb-4 pt-3 ${contentClassName}`}>{children}</div>
+        <div className={`anim-fade ${fill ? 'min-h-0 flex-1 overflow-y-auto' : ''} border-b border-gray-100 px-4 pb-4 pt-3 ${contentClassName}`}>{children}</div>
       )}
     </div>
   )
@@ -187,7 +199,7 @@ function extractInputsFromSteps(steps) {
   return inputs
 }
 
-function SaveWorkflowModal({ onClose, onSave, stepCount }) {
+function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
   const [name, setName] = useState('Google Search — Stack AI')
   const [description, setDescription] = useState(
     'Navigates to Google and searches for "stack ai".',
@@ -217,10 +229,11 @@ function SaveWorkflowModal({ onClose, onSave, stepCount }) {
               </div>
             </div>
             <button
-              onClick={() => { window.open('#/browser-automation/recording', '_blank', 'noopener') }}
-              className="flex cursor-pointer items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11.5px] font-medium text-ink hover:bg-gray-50"
+              onClick={onEditTab}
+              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11.5px] font-medium text-ink hover:bg-gray-50"
             >
-              Edit steps
+              Edit recording
+              <span className="text-gray-500"><ExternalLink size={11} /></span>
             </button>
           </div>
 
@@ -302,7 +315,7 @@ function RecordingTimer() {
   return <span className="tabular-nums">{formatTime(seconds)}</span>
 }
 
-function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopReplay, onDelete, timerKey, stepCount, replaying }) {
+function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopReplay, onDelete, timerKey, stepCount, replaying, onEditTab }) {
   let topRow
   if (phase === 'idle') {
     topRow = (
@@ -331,7 +344,7 @@ function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopRepl
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/25">
             <span className="h-2 w-2 rounded-[1px] bg-white" />
           </span>
-          Stop
+          Finish
           <RecordingTimer key={timerKey} />
         </button>
       </div>
@@ -342,7 +355,7 @@ function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopRepl
         <button
           onClick={onDelete}
           title="Delete recording"
-          className="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-ink"
+          className="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
         >
           <TrashIcon size={15} />
         </button>
@@ -366,10 +379,10 @@ function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopRepl
       {topRow}
       {phase === 'finished' ? (
         <button
-          onClick={() => { window.open('#/browser-automation/recording', '_blank', 'noopener') }}
+          onClick={onEditTab}
           className="flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 text-[12.5px] font-medium text-gray-600 hover:text-ink"
         >
-          Edit steps
+          Edit recording
           <ExternalLinkIcon size={12} />
         </button>
       ) : phase === 'recording' ? (
@@ -402,9 +415,24 @@ export default function WorkflowRecorderPanel({
   replayDone = false,
 }) {
   const [saveOpen, setSaveOpen] = useState(false)
+  const [confirmEditOpen, setConfirmEditOpen] = useState(false)
   const [recordingId, setRecordingId] = useState(0)
   const recording = phase === 'recording'
   const finished = phase === 'finished'
+
+  const doOpenEditTab = () => {
+    const url = `${window.location.origin}${window.location.pathname}#/browser-automation/recording`
+    window.open(url, '_blank', 'noopener,noreferrer')
+    setSaveOpen(false)
+    setConfirmEditOpen(false)
+    if (steps.length > 0 && onSaveRecording) {
+      const inputs = extractInputsFromSteps(steps)
+      onDelete && onDelete()
+      onSaveRecording({ name: 'Untitled recording', inputs })
+    }
+  }
+
+  const openEditTab = () => setConfirmEditOpen(true)
 
   return (
     <div
@@ -459,10 +487,7 @@ export default function WorkflowRecorderPanel({
                       index={i + 1}
                       label={step}
                       last={finished && i === steps.length - 1}
-                      onEdit={() => {
-                        const url = `${window.location.origin}${window.location.pathname}#/browser-automation/recording`
-                        window.open(url, '_blank', 'noopener,noreferrer')
-                      }}
+                      onEdit={openEditTab}
                       state={state}
                     />
                   )
@@ -489,6 +514,7 @@ export default function WorkflowRecorderPanel({
           onStopReplay={onStopReplay}
           replaying={replaying}
           onDelete={onDelete}
+          onEditTab={openEditTab}
         />
       </div>
 
@@ -496,6 +522,7 @@ export default function WorkflowRecorderPanel({
         <SaveWorkflowModal
           onClose={() => setSaveOpen(false)}
           stepCount={steps.length}
+          onEditTab={openEditTab}
           onSave={({ name }) => {
             setSaveOpen(false)
             const inputs = extractInputsFromSteps(steps)
@@ -503,6 +530,38 @@ export default function WorkflowRecorderPanel({
             if (onSaveRecording) onSaveRecording({ name, inputs })
           }}
         />
+      )}
+
+      {confirmEditOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmEditOpen(false)
+          }}
+          className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 px-4"
+        >
+          <div className="anim-modal w-full overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+            <div className="border-b border-hairline px-5 py-3.5 text-[14px] font-semibold text-ink">
+              Edit recording in a new page?
+            </div>
+            <div className="px-5 py-4 text-[12.5px] leading-relaxed text-ink">
+              You'll edit the steps on a new page. Your workflow will be saved and this panel will close.
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50 px-4 py-3">
+              <button
+                onClick={() => setConfirmEditOpen(false)}
+                className="cursor-pointer rounded-lg px-3 py-2 text-[12.5px] font-medium text-muted hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={doOpenEditTab}
+                className="cursor-pointer rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-medium text-white hover:opacity-90"
+              >
+                Accept
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

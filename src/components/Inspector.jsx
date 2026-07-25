@@ -56,7 +56,7 @@ function CollapsibleSection({
           {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </span>
       </div>
-      {open && <div className={bodyClass}>{children}</div>}
+      {open && <div className={'anim-fade ' + bodyClass}>{children}</div>}
     </div>
   )
 }
@@ -104,7 +104,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
   return (
     <div
       ref={panelRef}
-      className="flex w-[460px] flex-shrink-0 flex-col overflow-y-auto border-l border-hairline bg-white shadow-[-8px_0_24px_-6px_rgba(0,0,0,0.12)]"
+      className="anim-slide-right relative flex w-[460px] flex-shrink-0 flex-col overflow-y-auto border-l border-hairline bg-white shadow-[-4px_0_8px_-6px_rgba(0,0,0,0.05)]"
     >
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-gray-100 px-4 pb-2.5 pt-3.5">
@@ -112,7 +112,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
           <Monitor size={16} />
         </div>
         <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold">
-          Browser Navigation Repl...
+          Browser Navigation
         </div>
         <div className="rounded-md bg-gray-100 px-2 py-[3px] text-[11.5px] font-medium text-gray-600">
           action-3
@@ -155,7 +155,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
                 <Video size={14} />
               </span>
             }
-            value="Browser Navigation Replay"
+            value="Browser Navigation"
           />
         </Field>
       </div>
@@ -185,20 +185,20 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
         <div className="ml-1 border-l border-hairline pl-5">
           <div className="mb-2 flex items-center gap-1.5">
             <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-              Browser Navigation Mode
+              Run mode
             </span>
             <span
               className="cursor-help text-gray-400 hover:text-gray-600"
-              title="AI: Claude drives the browser autonomously from a natural-language goal.&#10;Manual: You script each step (click, type, navigate) yourself."
+              title="AI Agent: Claude drives the browser autonomously from a natural-language goal.&#10;Replay: Plays back a saved recording step by step."
             >
               <InfoCircle size={13} />
             </span>
           </div>
-          <div className="mb-3.5 flex justify-start">
+          <div className="mb-3.5 flex flex-col items-start gap-1.5">
             <div className="inline-flex items-center gap-0.5 rounded-[7px] bg-gray-100 p-[2px]">
               {[
-                ['ai', 'AI'],
-                ['manual', 'Manual'],
+                ['ai', 'AI Agent'],
+                ['manual', 'Replay'],
               ].map(([key, label]) => (
                 <div
                   key={key}
@@ -213,6 +213,11 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
                   {label}
                 </div>
               ))}
+            </div>
+            <div className="text-[12px] text-gray-500">
+              {mode === 'ai'
+                ? 'An AI agent model drives the browser from a natural-language goal.'
+                : 'Plays back a saved recording step by step.'}
             </div>
           </div>
 
@@ -285,11 +290,14 @@ function HardcodedInputField({ label, initial }) {
   const [modeOpen, setModeOpen] = useState(false)
   const wrapRef = useRef(null)
   const modeRef = useRef(null)
+  const inputRef = useRef(null)
+  const popoverRef = useRef(null)
 
   useEffect(() => {
     if (!popoverOpen) return
     const handle = (e) => {
-      if (wrapRef.current?.contains(e.target)) return
+      if (inputRef.current?.contains(e.target)) return
+      if (popoverRef.current?.contains(e.target)) return
       setPopoverOpen(false)
     }
     document.addEventListener('mousedown', handle)
@@ -326,7 +334,7 @@ function HardcodedInputField({ label, initial }) {
             </span>
           </button>
           {modeOpen && (
-            <div className="absolute right-0 top-[calc(100%+4px)] z-40 w-[220px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_10px_28px_rgba(0,0,0,0.14)]">
+            <div className="anim-pop absolute right-0 top-[calc(100%+4px)] z-40 w-[220px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_10px_28px_rgba(0,0,0,0.14)]">
               {[
                 { k: 'manual', icon: <Cursor size={13} />, iconClass: 'text-gray-500', title: 'Set manually', desc: 'You provide a value manually' },
                 { k: 'ai', icon: <Sparkle size={13} />, iconClass: 'text-brand', title: 'AI auto-fill', desc: 'AI fills the value from conversation context' },
@@ -355,7 +363,7 @@ function HardcodedInputField({ label, initial }) {
           This value will be determined by AI
         </div>
       ) : (
-      <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 focus-within:border-gray-400">
+      <div ref={inputRef} className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 focus-within:border-gray-400">
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -366,7 +374,7 @@ function HardcodedInputField({ label, initial }) {
       </div>
       )}
       {mode === 'manual' && popoverOpen && (
-        <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_10px_28px_rgba(0,0,0,0.14)]">
+        <div ref={popoverRef} className="anim-pop absolute left-0 right-0 top-[calc(100%+4px)] z-30 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_10px_28px_rgba(0,0,0,0.14)]">
           <div className="px-3 pt-3">
             <div className="inline-flex w-full items-center gap-0.5 rounded-[9px] bg-gray-100 p-[3px]">
               {[
@@ -453,7 +461,7 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
           {open && (
             <div
               ref={menuRef}
-              className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+              className="anim-pop absolute left-0 right-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
             >
               {recordings.map((r) => {
                 const isSel = r.name === savedRecording
@@ -497,7 +505,7 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
       </div>
 
       {selected && (
-        <div className="mb-3.5 flex flex-col gap-2.5">
+        <div className="mb-3.5 flex flex-col gap-4">
           {selected.inputs.map((f) => (
             <HardcodedInputField key={f.label} label={f.label} initial={f.value} />
           ))}

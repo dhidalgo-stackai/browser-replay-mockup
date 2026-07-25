@@ -56,3 +56,58 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Small enter transitions for popovers, dropdowns, and expanding panels.
+   Uses @starting-style so the element animates from the "starting" style
+   to its resting style on mount. Closing is immediate (React unmounts). */
+.anim-pop {
+  transition: opacity 140ms ease-out, transform 140ms ease-out;
+  transform-origin: top;
+}
+@starting-style {
+  .anim-pop {
+    opacity: 0;
+    transform: scaleY(0.96) translateY(-4px);
+  }
+}
+
+.anim-fade {
+  transition: opacity 160ms ease-out, transform 160ms ease-out;
+}
+@starting-style {
+  .anim-fade {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+
+.anim-slide-right {
+  transition: opacity 180ms ease-out, transform 180ms ease-out;
+}
+@starting-style {
+  .anim-slide-right {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+.anim-slide-left {
+  transition: opacity 180ms ease-out, transform 180ms ease-out;
+}
+@starting-style {
+  .anim-slide-left {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+.anim-modal {
+  transition: opacity 160ms ease-out, transform 160ms ease-out;
+}
+@starting-style {
+  .anim-modal {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+

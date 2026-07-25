@@ -1,6 +1,81 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import LeftRail from './LeftRail.jsx'
-import { Search, Plus, Upload, Kebab, ChevronDown } from './icons.jsx'
+import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile } from './icons.jsx'
+
+function EyeIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+const CREDENTIALS = [
+  { key: 'CLAUDE_API_KEY', updatedBy: 'Ppaudel', date: 'February 27, 2026', color: 'bg-indigo-500' },
+  { key: 'bridge_api_key', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300' },
+  { key: 'bridge_base_url', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300' },
+  { key: 'openai_api_key', updatedBy: 'David Hidalgo', date: 'May 3, 2026', color: 'bg-emerald-500' },
+  { key: 'segment_write_key', updatedBy: 'Jenny Liang', date: 'May 12, 2026', color: 'bg-amber-500' },
+]
+
+function CredentialRow({ c }) {
+  const initial = c.updatedBy[0]
+  return (
+    <div className="grid grid-cols-[1.2fr_1.4fr_1.4fr_1.4fr_1fr_40px] items-center gap-4 border-b border-hairline px-5 py-3 text-[13px] hover:bg-gray-50/60">
+      <div className="font-mono text-[12.5px] text-ink">{c.key}</div>
+      {['dev', 'staging', 'prod'].map((env) => (
+        <div key={env} className="flex items-center gap-2 text-muted">
+          <button className="text-gray-400 hover:text-ink"><EyeIcon size={14} /></button>
+          <span className="tracking-[2px] leading-none">•••••••••••••••••••••••</span>
+        </div>
+      ))}
+      <div className="flex items-center gap-2">
+        <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white ${c.color}`}>{initial}</div>
+        <div className="min-w-0">
+          <div className="truncate text-[12.5px] font-medium text-ink">{c.updatedBy}</div>
+          <div className="truncate text-[11.5px] text-muted">{c.date}</div>
+        </div>
+      </div>
+      <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted hover:bg-gray-100"><Kebab size={16} /></button>
+    </div>
+  )
+}
+
+function CredentialsView() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] text-muted">Secrets available to your browser recordings across environments.</p>
+        <button className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90">
+          <Plus size={14} sw={2.2} /> New Variable
+        </button>
+      </div>
+      <div className="overflow-hidden rounded-xl border border-hairline bg-white">
+        <div className="grid grid-cols-[1.2fr_1.4fr_1.4fr_1.4fr_1fr_40px] items-center gap-4 border-b border-hairline bg-gray-50/70 px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
+          <div>Key</div>
+          <div>Development Value</div>
+          <div>Staging Value</div>
+          <div>Production Value</div>
+          <div>Last Updated By</div>
+          <div />
+        </div>
+        {CREDENTIALS.map((c) => <CredentialRow key={c.key} c={c} />)}
+        <div className="flex items-center justify-between px-5 py-2.5">
+          <div className="flex items-center gap-1.5">
+            <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">‹ Prev</button>
+            <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">Next ›</button>
+          </div>
+          <div className="flex items-center gap-1.5 text-[12px]">
+            <span className="rounded-md bg-gray-100 px-2 py-1 font-medium text-ink">15 rows</span>
+            <span className="px-2 py-1 text-muted">30</span>
+            <span className="px-2 py-1 text-muted">100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const RECORDINGS = [
   {
@@ -97,7 +172,7 @@ function Card({ r }) {
       <div className="flex items-start justify-between gap-2 px-4 pt-3.5">
         <div className="min-w-0">
           <div className="text-[14px] font-semibold text-ink">{r.name}</div>
-          <div className="mt-0.5 text-[12px] text-muted">By {r.author}</div>
+          <div className="mt-0.5 truncate text-[12px] text-muted">{r.site}</div>
         </div>
         <button className="text-muted opacity-0 group-hover:opacity-100" onClick={e => e.preventDefault()}>
           <Kebab size={16} />
@@ -107,17 +182,196 @@ function Card({ r }) {
         <p className="text-[12.5px] leading-[1.5] text-gray-600 line-clamp-3 min-h-[54px]">{r.desc}</p>
       </div>
       <div className="mx-4 mt-3 border-t border-hairline" />
-      <div className="flex items-center justify-between px-4 py-2.5">
-        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[10px] font-semibold text-gray-600">{initials}</div>
-        <div className="text-[11.5px] text-muted">Updated on {r.updated}</div>
+      <div className="flex items-center justify-between gap-2 px-4 py-2.5">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[5px] bg-gray-100 text-[10px] font-semibold text-gray-600">{initials}</div>
+          <div className="truncate text-[11.5px] text-muted">{r.author}</div>
+        </div>
+        <div className="flex-shrink-0 text-[11.5px] text-muted">Updated on {r.updated}</div>
       </div>
     </a>
+  )
+}
+
+function ImportModal({ onClose }) {
+  const [file, setFile] = useState(null)
+  const [dragOver, setDragOver] = useState(false)
+  const [tab, setTab] = useState('file') // 'file' | 'script'
+  const [script, setScript] = useState('')
+  const inputRef = useRef(null)
+
+  const handleFiles = (files) => {
+    if (files && files[0]) setFile(files[0])
+  }
+
+  const canImport = tab === 'file' ? !!file : script.trim().length > 0
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/45 p-6"
+    >
+      <div className="anim-modal w-full max-w-[560px] overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+        <div className="flex items-start justify-between px-6 pt-5">
+          <div>
+            <div className="text-[17px] font-semibold text-ink">Import recording</div>
+            <div className="mt-1 text-[13px] text-muted">
+              Upload a recording file or paste a Playwright script.
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-gray-100"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="px-6 pt-4">
+          <div className="flex gap-1 border-b border-hairline">
+            <button
+              onClick={() => setTab('file')}
+              className={
+                'relative -mb-px px-3 py-2 text-[13px] font-medium ' +
+                (tab === 'file'
+                  ? 'border-b-2 border-ink text-ink'
+                  : 'text-muted hover:text-ink')
+              }
+            >
+              Upload file
+            </button>
+            <button
+              onClick={() => setTab('script')}
+              className={
+                'relative -mb-px px-3 py-2 text-[13px] font-medium ' +
+                (tab === 'script'
+                  ? 'border-b-2 border-ink text-ink'
+                  : 'text-muted hover:text-ink')
+              }
+            >
+              Playwright script
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 pt-4 pb-2">
+          {tab === 'file' ? (
+            <div
+              onClick={() => inputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault()
+                setDragOver(false)
+                handleFiles(e.dataTransfer.files)
+              }}
+              className={
+                'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[10px] border border-dashed px-6 py-9 text-center transition ' +
+                (dragOver
+                  ? 'border-ink bg-gray-50'
+                  : 'border-hairline bg-[#f8f9fb] hover:border-gray-300')
+              }
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-muted ring-1 ring-hairline">
+                <PageFile size={18} />
+              </div>
+              <div className="text-[13.5px] font-medium text-ink">
+                {file ? file.name : 'Drop your recording here or click to browse'}
+              </div>
+              <div className="text-[12px] text-muted">
+                {file ? `${(file.size / 1024).toFixed(1)} KB` : '.json or .stackai'}
+              </div>
+              <input
+                ref={inputRef}
+                type="file"
+                accept=".json,.stackai"
+                className="hidden"
+                onChange={(e) => handleFiles(e.target.files)}
+              />
+            </div>
+          ) : (
+            <div>
+              <div className="mb-2 flex items-center gap-2 rounded-md bg-emerald-50 px-2.5 py-1.5 text-[12px] text-emerald-800">
+                <Braces size={14} />
+                Pasted scripts are validated and compiled into an allowlisted step manifest.
+              </div>
+              <textarea
+                value={script}
+                onChange={(e) => setScript(e.target.value)}
+                placeholder={"import { test } from '@playwright/test'\n\ntest('flow', async ({ page }) => {\n  await page.goto('https://…')\n})"}
+                className="h-[180px] w-full resize-none rounded-[10px] border border-hairline bg-[#f8f9fb] px-3 py-2 font-mono text-[12px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-6 py-4">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-hairline bg-white px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            disabled={!canImport}
+            onClick={onClose}
+            className={
+              'rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-white ' +
+              (canImport ? 'bg-ink hover:opacity-90' : 'bg-gray-300 cursor-not-allowed')
+            }
+          >
+            Import
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function useHashSubroute() {
+  const [hash, setHash] = useState(() => window.location.hash || '')
+  useEffect(() => {
+    const onChange = () => setHash(window.location.hash || '')
+    window.addEventListener('hashchange', onChange)
+    return () => window.removeEventListener('hashchange', onChange)
+  }, [])
+  const path = hash.replace(/^#/, '')
+  if (path.startsWith('/browser-automation/credentials')) return 'credentials'
+  if (path.startsWith('/browser-automation/browser-recordings')) return 'browser-recordings'
+  return 'recordings'
+}
+
+const TABS = [
+  ['recordings', 'Recordings', '/browser-automation'],
+  ['credentials', 'Credentials', '/browser-automation/credentials'],
+]
+
+function PageTabs({ active }) {
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5">
+      {TABS.map(([id, label, href]) => (
+        <a
+          key={id}
+          href={`#${href}`}
+          className={
+            'cursor-pointer rounded-md px-3 py-1 text-[13px] font-medium transition ' +
+            (active === id
+              ? 'bg-white text-ink shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.08)]'
+              : 'text-muted hover:text-ink')
+          }
+        >
+          {label}
+        </a>
+      ))}
+    </div>
   )
 }
 
 export default function BrowserAutomationPage() {
   const [filter, setFilter] = useState('all')
   const [q, setQ] = useState('')
+  const [importOpen, setImportOpen] = useState(false)
+  const active = useHashSubroute()
 
   const filtered = RECORDINGS.filter(r => {
     if (filter === 'org' && !r.org) return false
@@ -128,49 +382,67 @@ export default function BrowserAutomationPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
-      <LeftRail expanded />
+      <LeftRail />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-white px-6 py-3">
           <div className="text-[15px] font-semibold text-ink">Browser automation</div>
           <div className="ml-auto flex items-center gap-2">
-            <button className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-white px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-gray-50">
-              <Upload size={14} /> Import
-            </button>
-            <button className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90">
-              <Plus size={14} sw={2.2} /> New recording
-            </button>
+            {active === 'recordings' && (
+              <>
+                <button
+                  onClick={() => setImportOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-white px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-gray-50"
+                >
+                  <Upload size={14} /> Import
+                </button>
+                <button className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90">
+                  <Plus size={14} sw={2.2} /> New recording
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         <main className="min-w-0 flex-1 overflow-y-auto bg-gray-50">
           <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-5 px-8 py-6">
-            <p className="text-[13px] text-muted">Reusable browser recordings your agents can replay on demand.</p>
+            <div><PageTabs active={active} /></div>
+            {active === 'recordings' && (
+              <>
+                <p className="text-[13px] text-muted">Reusable browser recordings your agents can replay on demand.</p>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-[260px]">
+                    <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"><Search size={14} /></span>
+                    <input
+                      value={q}
+                      onChange={e => setQ(e.target.value)}
+                      placeholder="Search recordings…"
+                      className="w-full rounded-lg border border-hairline bg-white py-1.5 pl-8 pr-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+                    />
+                  </div>
+                  <button className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-white px-3 py-1.5 text-[12.5px] text-ink hover:bg-gray-50">
+                    All authors <ChevronDown size={12} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {filtered.map(r => <Card key={r.name} r={r} />)}
+                </div>
+              </>
+            )}
 
-            <div className="flex items-center gap-3">
-              <div className="relative w-[260px]">
-                <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"><Search size={14} /></span>
-                <input
-                  value={q}
-                  onChange={e => setQ(e.target.value)}
-                  placeholder="Search recordings…"
-                  className="w-full rounded-lg border border-hairline bg-white py-1.5 pl-8 pr-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
-                />
+            {active === 'browser-recordings' && (
+              <div className="rounded-xl border border-dashed border-hairline bg-white px-6 py-16 text-center">
+                <div className="text-[14px] font-medium text-ink">No browser recordings yet</div>
+                <p className="mt-1 text-[12.5px] text-muted">Recordings captured directly from the browser extension will appear here.</p>
               </div>
-              <Chip active={filter === 'org'} onClick={() => setFilter(filter === 'org' ? 'all' : 'org')}>StackAI</Chip>
-              <Chip active={filter === 'custom'} onClick={() => setFilter(filter === 'custom' ? 'all' : 'custom')}>Custom</Chip>
-              <div className="h-6 w-px bg-hairline" />
-              <button className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-white px-3 py-1.5 text-[12.5px] text-ink hover:bg-gray-50">
-                All authors <ChevronDown size={12} />
-              </button>
-            </div>
+            )}
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map(r => <Card key={r.name} r={r} />)}
-            </div>
+            {active === 'credentials' && <CredentialsView />}
           </div>
         </main>
       </div>
+
+      {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
     </div>
   )
 }

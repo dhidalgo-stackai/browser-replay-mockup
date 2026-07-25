@@ -110,7 +110,7 @@ export default function Canvas({ onNodeClick }) {
         selected
         onClick={onNodeClick}
         icon={<Monitor size={16} />}
-        title="Browser Navigation Repla..."
+        title="Browser Navigation"
         desc="Replay a saved browser navigation recording from the shared browser..."
         meta={['0.00 sec', 'v1.0.0']}
       />

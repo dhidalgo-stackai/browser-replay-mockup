@@ -34,23 +34,26 @@ export default function App() {
   if (route.startsWith('/browser-automation')) return <BrowserAutomationPage />
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <Topbar />
+    <div className="flex h-screen overflow-hidden bg-white">
+      <LeftRail expanded />
 
-      <div className="relative flex min-h-0 flex-1">
-        <LeftRail />
-        <Canvas onNodeClick={() => setInspectorOpen(true)} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar />
 
-        {inspectorOpen && (
-          <Inspector
-            onOpenSandbox={openSandbox}
-            onClose={() => setInspectorOpen(false)}
-            savedRecording={savedRecording}
-            onSelectRecording={setSavedRecording}
-            onClearRecording={() => setSavedRecording(null)}
-            extraRecordings={extraRecordings}
-          />
-        )}
+        <div className="relative flex min-h-0 flex-1">
+          <Canvas onNodeClick={() => setInspectorOpen(true)} />
+
+          {inspectorOpen && (
+            <Inspector
+              onOpenSandbox={openSandbox}
+              onClose={() => setInspectorOpen(false)}
+              savedRecording={savedRecording}
+              onSelectRecording={setSavedRecording}
+              onClearRecording={() => setSavedRecording(null)}
+              extraRecordings={extraRecordings}
+            />
+          )}
+        </div>
       </div>
 
       {sandboxOpen && (
