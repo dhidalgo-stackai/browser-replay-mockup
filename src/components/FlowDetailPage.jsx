@@ -104,17 +104,15 @@ function StepThumbnail({ verb, prefix, chip }) {
   }
   if (verb === 'Click' && /Example Forms|result/i.test(prefix + ' ' + chip)) {
     return (
-      <BrowserFrame url="google.com/search">
-        <div className="flex flex-col gap-[3px] px-1.5 py-1">
-          <div className="text-[5px] text-gray-500">{chip.slice(0, 24)}</div>
-          <div className="text-[6px] font-medium leading-tight text-[#1a0dab] underline decoration-[0.5px]">
-            {chip.length > 30 ? chip.slice(0, 30) + '…' : chip}
-          </div>
-          <div className="text-[5px] leading-[6px] text-gray-500">
-            Trusted forms for teams building workflows online today.
-          </div>
+      <div className="flex h-full flex-col gap-[3px] px-1.5 py-1">
+        <div className="text-[5px] text-gray-500">{chip.slice(0, 24)}</div>
+        <div className="text-[6px] font-medium leading-tight text-[#1a0dab] underline decoration-[0.5px]">
+          {chip.length > 30 ? chip.slice(0, 30) + '…' : chip}
         </div>
-      </BrowserFrame>
+        <div className="text-[5px] leading-[6px] text-gray-500">
+          Trusted forms for teams building workflows online today.
+        </div>
+      </div>
     )
   }
   if (verb === 'Click' || verb === 'Type') {
@@ -319,32 +317,10 @@ function FailurePolicyControls({ value, onChange }) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <div className="flex items-center">
-          <span className="text-[13px] text-ink">Retry on Failure</span>
-          <span className="ml-auto"><Toggle checked={value.retry} onChange={(v) => set({ retry: v })} /></span>
-        </div>
-        {value.retry && (
-          <div className="mt-3 flex flex-col gap-3 border-l border-hairline pl-3">
-            <div>
-              <div className="mb-1 flex items-center">
-                <span className="text-[12px] text-muted">Max Retries</span>
-                <span className="ml-auto text-[12.5px] font-medium text-ink tabular-nums">{value.maxRetries}</span>
-              </div>
-              <Slider value={value.maxRetries} min={1} max={10} onChange={(v) => set({ maxRetries: v })} />
-            </div>
-            <div>
-              <div className="mb-1 flex items-center">
-                <span className="text-[12px] text-muted">Retry Interval (ms)</span>
-                <span className="ml-auto text-[12.5px] font-medium text-ink tabular-nums">{value.retryInterval}</span>
-              </div>
-              <Slider value={value.retryInterval} min={250} max={10000} step={250} onChange={(v) => set({ retryInterval: v })} />
-            </div>
-          </div>
-        )}
-      </div>
-      <div>
-        <div className="mb-1.5 text-[13px] text-ink">
-          {value.retry ? 'If retries are exhausted' : 'On Error'}
+        <div className="mb-2">
+          <span className="text-[13px] font-medium text-ink [text-decoration:underline_dotted] underline-offset-[6px] decoration-gray-300">
+            On Error
+          </span>
         </div>
         <OnErrorDropdown value={value.onError} onChange={(v) => set({ onError: v })} />
         {desc && (
@@ -475,7 +451,6 @@ function StepItem({ step, stepId, stepNumber, boundInput, boundInputType, defaul
             {showsValue && (
               <div className="mb-3 flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5">
-                  <IcType size={13} className="text-muted" />
                   <span className="text-[12.5px] font-medium text-ink">Value</span>
                 </div>
                 <div className="relative min-w-0">
@@ -1222,17 +1197,17 @@ function SidebarSection({ icon, title, children, defaultOpen = false, bodyPadded
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="flex w-full cursor-pointer items-center gap-2.5 px-5 py-3.5 text-left hover:bg-gray-50"
+        className="flex w-full cursor-pointer select-none items-center gap-2.5 border-b border-gray-100 px-4 py-3.5 text-left text-[13px] text-ink"
       >
-        <span className="text-gray-400">{icon}</span>
-        <span className="text-[12px] font-medium uppercase tracking-[0.06em] text-muted">{title}</span>
+        <span className="flex items-center text-gray-600">{icon}</span>
+        {title}
         <IcCaret
           size={14}
-          className={'ml-auto text-gray-400 transition-transform ' + (open ? '' : '-rotate-90')}
+          className={'ml-auto text-gray-400 transition-transform ' + (open ? 'rotate-180' : '')}
         />
       </button>
       {open && (
-        <div className={'anim-fade ' + (bodyPadded ? 'px-5 pb-4' : 'pb-2')}>
+        <div className={'anim-fade border-b border-gray-100 text-[12.5px] leading-[1.5] text-muted ' + (bodyPadded ? 'px-4 pb-4 pt-1' : 'pb-2')}>
           {children}
         </div>
       )}
@@ -1244,6 +1219,9 @@ export default function FlowDetailPage() {
   const [tab, setTab] = useState('overview')
   const [replayOpen, setReplayOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [description, setDescription] = useState(
+    'Logs into the NetSuite vendor portal and downloads open invoices for accounts payable.'
+  )
   const tabFromHash = () => {
     const m = (window.location.hash || '').match(/^#\/browser-automation\/recording\/(steps|runs|references)/)
     return m ? m[1] : 'steps'
@@ -1293,7 +1271,7 @@ export default function FlowDetailPage() {
           <div className="pointer-events-auto inline-flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5">
             {[
               ['steps', 'Recording'],
-              ['runs', 'Runs'],
+              ['runs', 'Analytics'],
               ['references', 'References'],
             ].map(([id, label]) => (
               <button
@@ -1332,6 +1310,8 @@ export default function FlowDetailPage() {
             </button>
           )}
 
+          <div className="h-5 w-px bg-gray-200" />
+
           <button
             onClick={() => setDirty(false)}
             className="relative flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium">
@@ -1353,6 +1333,8 @@ export default function FlowDetailPage() {
             <ChevronDown size={13} sw={2.5} />
           </button>
 
+          <div className="h-5 w-px bg-gray-200" />
+
           <div className="cursor-pointer px-1 text-muted"><Kebab size={18} /></div>
         </div>
       </div>
@@ -1361,18 +1343,6 @@ export default function FlowDetailPage() {
       <div className="flex min-h-0 flex-1">
         <main className="canvas-dots no-scrollbar min-w-0 flex-1 overflow-y-auto">
           <div className="mx-auto flex w-full max-w-[880px] flex-col gap-5 px-8 py-6">
-            {/* Header */}
-            {mainTab !== 'runs' && mainTab !== 'references' && (
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-9 w-9 place-items-center rounded-lg border border-hairline bg-white text-[11px] font-semibold text-ink">NS</div>
-                  <h1 className="m-0 text-[20px] font-semibold tracking-tight text-ink">Download vendor invoices</h1>
-                </div>
-                <p className="m-0 text-[13px] text-muted">
-                  Logs into NetSuite and downloads the latest vendor invoices for accounts payable review.
-                </p>
-              </div>
-            )}
 
             {mainTab === 'steps' && (() => {
               const stepDefs = [
@@ -1449,6 +1419,7 @@ export default function FlowDetailPage() {
                         onOpenSettings={() => setSettingsOpen(true)}
                       />
                     ))}
+                    <div className="h-16" />
                   </div>
                 </div>
               )
@@ -1456,29 +1427,13 @@ export default function FlowDetailPage() {
 
             {mainTab === 'runs' && openRun && (() => {
               const runSteps = [
-                { name: 'Navigate to login', op: 'goto', code: "goto('https://portal.netsuite.com/login')", url: 'portal.netsuite.com', dur: '1.2s', status: 'ok', frame: 'login' },
-                { name: 'Fill username',     op: 'fill', code: "fill('#email', credentials.username)", url: 'portal.netsuite.com', dur: '2.0s', status: 'ok', frame: 'field1' },
-                { name: 'Fill password',     op: 'fill', code: "fill('#password', credentials.password)", url: 'portal.netsuite.com', dur: '2.8s', status: 'ok', frame: 'field2' },
-                { name: 'Sign in',           op: 'click', code: "click('button[type=submit]')", url: 'portal.netsuite.com', dur: '3.6s', status: 'ok', frame: 'submit' },
-                { name: 'Wait for dashboard', op: 'wait', code: "waitForURL('**/dashboard')", url: 'portal.netsuite.com/dashboard', dur: '5.1s', status: 'ok', frame: 'dashboard' },
-                { name: 'Open invoices',     op: 'click', code: "click('nav >> text=Invoices')", url: 'portal.netsuite.com/invoices', dur: '6.4s', status: openRun.st === 'fail' ? 'fail' : 'ok', frame: 'list' },
+                { text: 'Navigate to https://portal.netsuite.com/login', dur: '1.2s', status: 'ok' },
+                { text: 'Type "ada@example.com" into "Email"',            dur: '2.0s', status: 'ok' },
+                { text: 'Type "••••••••" into "Password"',                dur: '2.8s', status: 'ok' },
+                { text: 'Click "Sign in"',                                dur: '3.6s', status: 'ok' },
+                { text: 'Navigate to https://portal.netsuite.com/dashboard', dur: '5.1s', status: 'ok' },
+                { text: 'Click "Invoices"',                               dur: '6.4s', status: openRun.st === 'fail' ? 'fail' : 'ok' },
               ]
-              const FrameSkeleton = ({ variant }) => (
-                <div className="pointer-events-none flex h-[110px] w-[170px] flex-none flex-col overflow-hidden rounded-md border border-hairline bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-                  <div className="flex flex-none items-center gap-1 border-b border-hairline bg-gray-50 px-1.5 py-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-                    <div className="ml-1 flex-1 truncate rounded-sm bg-white px-1 text-[6px] leading-[10px] text-gray-400">portal.netsuite.com</div>
-                  </div>
-                  <div className="relative flex-1 p-2">
-                    <div className="mb-1.5 h-3.5 w-3.5 rounded-sm bg-[#0b3fa3]" />
-                    <div className={'mb-1 h-1.5 w-full rounded-sm ' + (variant === 'field1' ? 'border border-[#3b82f6] ring-1 ring-blue-200 bg-white' : 'bg-gray-200')} />
-                    <div className={'mb-1 h-1.5 w-full rounded-sm ' + (variant === 'field2' ? 'border border-[#3b82f6] ring-1 ring-blue-200 bg-white' : 'bg-gray-200')} />
-                    <div className={'h-2 w-full rounded-sm ' + (variant === 'submit' ? 'ring-2 ring-blue-300 bg-[#0b3fa3]' : 'bg-[#0b3fa3]')} />
-                  </div>
-                </div>
-              )
               return (
                 <div className="flex flex-col gap-4">
                   <button
@@ -1502,61 +1457,128 @@ export default function FlowDetailPage() {
                     <div className="text-[12.5px] text-muted">Inspect a single run. Click a step to see inputs and outputs.</div>
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    {runSteps.map((s, i) => (
-                      <div key={i} className="relative rounded-lg border border-hairline bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                        <div className="flex items-start gap-3 p-4">
-                          <div className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-gray-100 text-[11px] font-medium text-muted">{i + 1}</div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <div className="text-[14px] font-semibold text-ink">{s.name}</div>
-                            </div>
-                            <div className="mt-3 font-mono text-[12px] text-gray-500">{s.code}</div>
-                            <div className="mt-6 flex items-center gap-2 text-[12px]">
+                  <div className="flex min-w-0 flex-col gap-2.5">
+                    <div className="flex items-center gap-2 px-1">
+                      <span className="text-[13px] font-semibold text-ink">Steps</span>
+                      <span className="text-[12px] text-muted">· {runSteps.length}</span>
+                    </div>
+                    {runSteps.map((s, i) => {
+                      const { verb, prefix, chip } = stepParts(s.text)
+                      const showsValue = verb === 'Type' || verb === 'Select'
+                      const literalMatch = prefix.match(/^"([^"]+)"/)
+                      const displayLiteral = literalMatch ? literalMatch[1] : ''
+                      return (
+                        <section
+                          key={i}
+                          className="group rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors hover:border-gray-300"
+                        >
+                          <div className="flex w-full items-center gap-2.5 rounded-lg py-2 pl-3 pr-3 text-left">
+                            <span className="w-5 flex-none text-center text-[11px] tabular-nums text-gray-400">{i + 1}</span>
+                            <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg border border-hairline bg-white text-muted shadow-[0_1px_1px_rgba(0,0,0,0.03)]">
+                              {stepIcon(verb)}
+                            </span>
+                            <span className="text-[13px] font-medium text-ink">{verb}</span>
+                            {showsValue ? (
+                              <>
+                                <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-0.5 font-mono text-[12px] text-ink">"{displayLiteral}"</span>
+                                {chip && (
+                                  <>
+                                    <span className="text-[12px] text-muted">into</span>
+                                    <span className="min-w-0 truncate font-mono text-[12px] text-muted">"{chip}"</span>
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {prefix && <span className="text-[12.5px] text-muted">{prefix}</span>}
+                                {chip && (
+                                  <span className="min-w-0 truncate font-mono text-[12px] text-muted">
+                                    {chip}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                            <div className="ml-auto flex flex-none items-center gap-2">
                               <span className={'h-1.5 w-1.5 rounded-full ' + (s.status === 'ok' ? 'bg-emerald-500' : 'bg-red-500')} />
-                              <span className={s.status === 'ok' ? 'text-ink' : 'text-red-700'}>{s.status === 'ok' ? 'Succeeded' : 'Failed'}</span>
-                              <span className="font-mono text-muted">{s.dur}</span>
-                              <span className="text-muted">·</span>
-                              <span className="text-muted">checkpointed</span>
+                              <span className={'text-[12px] ' + (s.status === 'ok' ? 'text-muted' : 'text-red-700')}>{s.status === 'ok' ? 'Succeeded' : 'Failed'}</span>
+                              <span className="font-mono text-[11.5px] text-muted">{s.dur}</span>
+                              <span className="pointer-events-none flex h-7 w-7 flex-none items-center justify-center overflow-hidden rounded-md border border-hairline bg-white p-0">
+                                <span className="block scale-[0.30] origin-center">
+                                  <StepThumbnail verb={verb} prefix={prefix} chip={chip} />
+                                </span>
+                              </span>
                             </div>
                           </div>
-                          <div className="flex flex-none items-start gap-3">
-                            <span className="rounded-md bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-muted">{s.op}</span>
-                            <FrameSkeleton variant={s.frame} />
-                          </div>
-                        </div>
-                        {i < runSteps.length - 1 && (
-                          <div className="pointer-events-none absolute -bottom-3 left-[27px] h-3 border-l border-dashed border-hairline" />
-                        )}
-                      </div>
-                    ))}
+                        </section>
+                      )
+                    })}
                   </div>
                 </div>
               )
             })()}
 
             {mainTab === 'runs' && !openRun && (() => {
-              const StatCard = ({ label, value, bars, hint }) => {
-                const max = Math.max(...bars.map(b => b.v), 1)
+              const StatCard = ({ label, value, bars, hint, accent = 'ink' }) => {
                 const days = ['Jul 19', 'Jul 20', 'Jul 21', 'Jul 22', 'Jul 23', 'Jul 24', 'Jul 25']
+                const vals = bars.map(b => b.v)
+                const rawMax = Math.max(...vals, 1)
+                const rawMin = Math.min(...vals)
+                const yMax = rawMax
+                const yMin = Math.max(0, Math.min(rawMin, Math.floor(rawMax * 0.3)))
+                const W = 560, H = 120, PL = 34, PR = 8, PT = 8, PB = 22
+                const iw = W - PL - PR, ih = H - PT - PB
+                const n = vals.length
+                const pts = vals.map((v, i) => {
+                  const x = PL + (n === 1 ? iw / 2 : (i * iw) / (n - 1))
+                  const t = yMax === yMin ? 0.5 : (v - yMin) / (yMax - yMin)
+                  const y = PT + ih - t * ih
+                  return [x, y]
+                })
+                const smooth = (p) => {
+                  if (p.length < 2) return ''
+                  let d = `M ${p[0][0]} ${p[0][1]}`
+                  for (let i = 0; i < p.length - 1; i++) {
+                    const p0 = p[i - 1] || p[i]
+                    const p1 = p[i]
+                    const p2 = p[i + 1]
+                    const p3 = p[i + 2] || p2
+                    const c1x = p1[0] + (p2[0] - p0[0]) / 6
+                    const c1y = p1[1] + (p2[1] - p0[1]) / 6
+                    const c2x = p2[0] - (p3[0] - p1[0]) / 6
+                    const c2y = p2[1] - (p3[1] - p1[1]) / 6
+                    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`
+                  }
+                  return d
+                }
+                const linePath = smooth(pts)
+                const areaPath = linePath + ` L ${pts[pts.length - 1][0]} ${PT + ih} L ${pts[0][0]} ${PT + ih} Z`
+                const stroke = accent === 'red' ? '#ef4444' : '#374151'
+                const fillTop = accent === 'red' ? 'rgba(239,68,68,0.14)' : 'rgba(55,65,81,0.10)'
+                const gradId = `sc-grad-${label.replace(/\s+/g, '-').toLowerCase()}`
                 return (
                   <div className="overflow-hidden rounded-lg border border-hairline bg-white">
-                    <div className="border-b border-hairline bg-gray-50 px-3.5 py-2 text-[12px] text-muted">{label}</div>
-                    <div className="px-3.5 pb-3 pt-3">
-                      <div className="text-[26px] font-semibold tabular-nums leading-tight text-ink">{value}</div>
-                      <div className="mt-3 flex h-14 items-end gap-1.5">
-                        {bars.map((b, i) => (
-                          <div key={i} className="flex h-full flex-1 flex-col justify-end">
-                            <div
-                              className={'w-full rounded-sm ' + (b.fail ? 'bg-red-400' : 'bg-gray-500/80')}
-                              style={{ height: `${Math.max((b.v / max) * 100, 3)}%` }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-1 flex justify-between text-[10px] text-muted">
-                        {days.map(d => <span key={d}>{d}</span>)}
-                      </div>
+                    <div className="flex items-center gap-1.5 border-b border-hairline bg-gray-50 px-3.5 py-2.5 text-[12.5px] text-muted">
+                      {label}
+                      <span className="text-gray-400"><Ic size={12}><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></Ic></span>
+                    </div>
+                    <div className="px-4 pb-2 pt-3">
+                      <div className="text-[28px] font-semibold tabular-nums leading-tight tracking-tight text-ink">{value}</div>
+                      <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={fillTop} />
+                            <stop offset="100%" stopColor={fillTop.replace(/,[^,]+\)$/, ',0)')} />
+                          </linearGradient>
+                        </defs>
+                        <text x={PL - 6} y={PT + 4} textAnchor="end" fontSize="11" fill="#6b7280">{yMax}</text>
+                        <text x={PL - 6} y={PT + ih + 4} textAnchor="end" fontSize="11" fill="#6b7280">{yMin}</text>
+                        <path d={areaPath} fill={`url(#${gradId})`} />
+                        <path d={linePath} fill="none" stroke={stroke} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                        {days.map((d, i) => {
+                          const x = PL + (n === 1 ? iw / 2 : (i * iw) / (n - 1))
+                          return <text key={d} x={x} y={H - 6} textAnchor="middle" fontSize="11" fill="#6b7280">{d}</text>
+                        })}
+                      </svg>
                       {hint && <div className="mt-1.5 text-[11px] text-muted">{hint}</div>}
                     </div>
                   </div>
@@ -1594,23 +1616,13 @@ export default function FlowDetailPage() {
                       <IcCalendar size={12} className="text-gray-400" />
                       Jul 19, 2026 &nbsp;–&nbsp; Jul 25, 2026
                     </button>
-                    <div className="ml-auto flex items-center gap-2">
-                      <button className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-2.5 py-1.5 text-[12.5px] text-ink hover:bg-gray-50">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z" /></svg>
-                        Flow Report
-                      </button>
-                      <button className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-2.5 py-1.5 text-[12.5px] text-ink hover:bg-gray-50">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M6 11l6 6 6-6M4 21h16" /></svg>
-                        Download Logs
-                      </button>
-                    </div>
                   </div>
 
                   {/* Stat cards */}
                   <div className="grid grid-cols-2 gap-3">
                     <StatCard label="Runs" value="284" bars={runBars} />
                     <StatCard label="Users" value="7" bars={userBars} />
-                    <StatCard label="Errors" value="3" bars={errorBars} />
+                    <StatCard label="Errors" value="3" bars={errorBars} accent="red" />
                     <StatCard label="Median duration" value="41s" bars={durBars} />
                   </div>
 
@@ -1630,7 +1642,7 @@ export default function FlowDetailPage() {
 
                   {/* Recent runs table */}
                   <div className="overflow-hidden rounded-lg border border-hairline bg-white">
-                    <div className="grid grid-cols-[1fr_1.1fr_1.3fr_0.8fr_0.7fr_0.9fr] gap-3 border-b border-hairline bg-white px-4 py-2.5 text-[11px] font-medium text-muted">
+                    <div className="grid grid-cols-[1fr_1.1fr_1.3fr_0.8fr_0.7fr_0.9fr] gap-3 border-b border-hairline bg-gray-50 px-4 py-2.5 text-[11px] font-medium text-muted">
                       <div className="flex items-center gap-1">Status</div>
                       <div className="flex items-center gap-1">Started <IcCaret size={10} /></div>
                       <div className="flex items-center gap-1">Called by</div>
@@ -1674,7 +1686,13 @@ export default function FlowDetailPage() {
                   ].map(([name, team, meta], i) => (
                     <a key={i} href="#" className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-hairline px-4 py-3 last:border-b-0 hover:bg-gray-50">
                       <div className="grid h-8 w-8 place-items-center rounded-md border border-hairline bg-gray-50 text-muted">
-                        <Folder size={15} />
+                        <Ic size={15}>
+                          <rect x="3" y="4" width="6" height="6" rx="1" />
+                          <rect x="15" y="4" width="6" height="6" rx="1" />
+                          <rect x="9" y="14" width="6" height="6" rx="1" />
+                          <path d="M6 10v2h12v-2" />
+                          <path d="M12 12v2" />
+                        </Ic>
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-[13px] font-medium text-ink">{name}</div>
@@ -1769,19 +1787,33 @@ export default function FlowDetailPage() {
         </aside>
         )}
         {settingsOpen && mainTab === 'steps' && (
-        <aside className="anim-slide-right no-scrollbar flex w-[400px] flex-none flex-col overflow-y-auto border-l border-hairline bg-white">
-          <div className="flex flex-none items-center border-b border-hairline px-5 py-3">
-            <div className="text-[14px] font-semibold text-ink">Details</div>
+        <aside className="anim-slide-right no-scrollbar flex w-[460px] flex-none flex-col overflow-y-auto border-l border-hairline bg-white shadow-[-4px_0_8px_-6px_rgba(0,0,0,0.05)]">
+          <div className="flex flex-none items-center gap-2 border-b border-gray-100 px-4 pb-2.5 pt-3.5">
+            <div className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px] bg-gray-100 text-gray-600">
+              <Gear size={16} />
+            </div>
+            <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold">
+              Details
+            </div>
             <button
               type="button"
               onClick={() => setSettingsOpen(false)}
               aria-label="Close settings"
-              className="ml-auto flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-muted hover:bg-gray-100"
+              className="flex h-[26px] w-[26px] cursor-pointer items-center justify-center rounded-md text-muted hover:bg-gray-100"
             >
               <X size={16} />
             </button>
           </div>
-          <div className="flex flex-1 flex-col divide-y divide-hairline">
+          <div className="flex flex-1 flex-col">
+          <SidebarSection icon={<IcClock size={18} />} title="Description" defaultOpen={true}>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe what this recording does…"
+              className="min-h-[72px] w-full resize-y rounded-md border border-hairline bg-white px-2.5 py-2 text-[13px] leading-[1.5] text-ink placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+            />
+          </SidebarSection>
+
           <SidebarSection icon={<IcClock size={18} />} title="About" defaultOpen={true}>
             <div className="flex flex-col gap-3">
               {[
@@ -1792,8 +1824,8 @@ export default function FlowDetailPage() {
                 ['Created', 'Jun 14, 2026'],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-baseline gap-3">
-                  <div className="w-[92px] flex-none text-[11px] uppercase tracking-[0.06em] text-muted">{k}</div>
-                  <div className="min-w-0 flex-1 truncate text-[12.5px] text-ink">{v}</div>
+                  <div className="w-[110px] flex-none text-[12.5px] text-muted">{k}</div>
+                  <div className="min-w-0 flex-1 truncate text-[13px] text-ink">{v}</div>
                 </div>
               ))}
             </div>
@@ -1813,7 +1845,7 @@ export default function FlowDetailPage() {
                 ['Session token', 'NetSuite prod session · active', true],
               ].map(([k, v, active]) => (
                 <div key={k} className="flex flex-col gap-1.5">
-                  <div className="text-[10.5px] font-medium uppercase tracking-[0.07em] text-muted">{k}</div>
+                  <div className="text-[12.5px] text-muted">{k}</div>
                   <div className="flex items-center gap-2 rounded-md border border-hairline bg-white px-2.5 py-1.5 text-[13px] text-ink">
                     <div className={'h-4 w-4 rounded border ' + (active ? 'border-emerald-400 bg-emerald-50' : 'border-hairline bg-gray-50')} />
                     <span>{v}</span>

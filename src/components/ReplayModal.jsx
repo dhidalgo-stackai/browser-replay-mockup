@@ -14,6 +14,7 @@ import {
   User,
   StackAILogo,
 } from './icons.jsx'
+import FakeSite from './FakeSite.jsx'
 
 const STEPS = [
   'Navigate to https://www.google.com/search?q=contact+form',
@@ -124,6 +125,31 @@ function StepRow({ label, last, state }) {
   )
 }
 
+const FULL_NAME = 'Ada Lovelace'
+const FIRST_NAME = 'Ada'
+const LAST_NAME = 'Lovelace'
+
+function getFakeState(index) {
+  if (index <= 0) return { page: 'home', query: '', formData: emptyForm() }
+  if (index === 1) return { page: 'results', query: 'contact form', formData: emptyForm() }
+  if (index >= 13) return { page: 'done', query: 'contact form', formData: emptyForm() }
+  const fd = emptyForm()
+  if (index >= 4) fd.firstName = FIRST_NAME
+  if (index >= 6) fd.lastName = LAST_NAME
+  if (index >= 7) fd.country = 'United States'
+  if (index >= 8) fd.role = 'Engineer'
+  if (index >= 11) fd.fullName = FULL_NAME
+  if (index >= 12) fd.agree = true
+  if (index <= 8) return { page: 'form1', query: 'contact form', formData: fd }
+  return { page: 'form2', query: 'contact form', formData: fd }
+}
+
+function emptyForm() {
+  return { firstName: '', lastName: '', country: '', role: '', fullName: '', agree: false }
+}
+
+const noop = () => {}
+
 export default function ReplayModal({ onClose, flowName = 'Flow' }) {
   const [index, setIndex] = useState(0)
   const [done, setDone] = useState(false)
@@ -221,10 +247,31 @@ export default function ReplayModal({ onClose, flowName = 'Flow' }) {
           </div>
 
           <div className="flex min-h-0 flex-1">
-            <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-white px-12 pb-12 pt-10 text-[#202124]">
-              <div className="text-[15px] text-gray-500">
-                {done ? 'Workflow replayed successfully' : 'Replaying browser…'}
+            <div className="relative flex min-h-0 flex-1 overflow-auto bg-white px-12 pb-12 pt-10 text-[#202124]">
+              <div className="pointer-events-none w-full select-none">
+                {(() => {
+                  const s = getFakeState(index)
+                  return (
+                    <FakeSite
+                      page={s.page}
+                      query={s.query}
+                      formData={s.formData}
+                      setFormData={noop}
+                      onStep={noop}
+                      onLiveStep={noop}
+                      onCommitLive={noop}
+                      onNavigate={noop}
+                    />
+                  )
+                })()}
               </div>
+              {done && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-[12px] font-semibold text-emerald-700 shadow-sm">
+                    Workflow replayed successfully
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="relative flex w-[340px] flex-shrink-0 flex-col overflow-hidden border-l border-hairline bg-white">

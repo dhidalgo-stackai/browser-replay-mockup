@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import LeftRail from './LeftRail.jsx'
-import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile } from './icons.jsx'
+import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile, InfoCircle } from './icons.jsx'
+import Tooltip from './Tooltip.jsx'
+import SandboxModal from './SandboxModal.jsx'
 
 function EyeIcon({ size = 14 }) {
   return (
@@ -12,31 +14,65 @@ function EyeIcon({ size = 14 }) {
 }
 
 const CREDENTIALS = [
-  { key: 'CLAUDE_API_KEY', updatedBy: 'Ppaudel', date: 'February 27, 2026', color: 'bg-indigo-500' },
-  { key: 'bridge_api_key', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300' },
-  { key: 'bridge_base_url', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300' },
-  { key: 'openai_api_key', updatedBy: 'David Hidalgo', date: 'May 3, 2026', color: 'bg-emerald-500' },
-  { key: 'segment_write_key', updatedBy: 'Jenny Liang', date: 'May 12, 2026', color: 'bg-amber-500' },
+  { key: 'CLAUDE_API_KEY', username: 'api@stack.ai', updatedBy: 'Ppaudel', date: 'February 27, 2026', color: 'bg-indigo-500', createdBy: 'Ppaudel', createdColor: 'bg-indigo-500', usedByList: ['Download vendor invoices', 'Extract Salesforce lead list', 'Sync Zendesk tickets', 'Refresh HubSpot deals'], timesUsed: 128 },
+  { key: 'bridge_api_key', username: 'bridge-svc', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300', createdBy: 'German Parada', createdColor: 'bg-gray-300', usedByList: ['Post weekly ops report', 'Renew SSL certificate'], timesUsed: 47 },
+  { key: 'bridge_base_url', username: '—', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300', createdBy: 'German Parada', createdColor: 'bg-gray-300', usedByList: ['Post weekly ops report', 'Renew SSL certificate'], timesUsed: 47 },
+  { key: 'openai_api_key', username: 'davidh@stack.ai', updatedBy: 'David Hidalgo', date: 'May 3, 2026', color: 'bg-emerald-500', createdBy: 'David Hidalgo', createdColor: 'bg-emerald-500', usedByList: ['Download vendor invoices', 'Extract Salesforce lead list', 'Update pricing sheet on Shopify', 'Competitor page screenshots', 'Refresh HubSpot deals', 'test recording'], timesUsed: 312 },
+  { key: 'segment_write_key', username: 'analytics', updatedBy: 'Jenny Liang', date: 'May 12, 2026', color: 'bg-amber-500', createdBy: 'Jacob ZY Yoon', createdColor: 'bg-rose-500', usedByList: ['Post weekly ops report'], timesUsed: 9 },
 ]
 
-function CredentialRow({ c }) {
-  const initial = c.updatedBy[0]
+function UserCell({ name, color }) {
+  const initial = name[0]
   return (
-    <div className="grid grid-cols-[1.2fr_1.4fr_1.4fr_1.4fr_1fr_40px] items-center gap-4 border-b border-hairline px-5 py-3 text-[13px] hover:bg-gray-50/60">
-      <div className="font-mono text-[12.5px] text-ink">{c.key}</div>
-      {['dev', 'staging', 'prod'].map((env) => (
-        <div key={env} className="flex items-center gap-2 text-muted">
-          <button className="text-gray-400 hover:text-ink"><EyeIcon size={14} /></button>
-          <span className="tracking-[2px] leading-none">•••••••••••••••••••••••</span>
-        </div>
-      ))}
-      <div className="flex items-center gap-2">
-        <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white ${c.color}`}>{initial}</div>
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-gray-700 ring-1 ring-gray-200 bg-white">{initial}</div>
+      <div className="truncate text-[12.5px] text-ink">{name}</div>
+    </div>
+  )
+}
+
+function CredentialRow({ c }) {
+  return (
+    <div className="grid grid-cols-[1.2fr_1fr_1fr_1.3fr_1.3fr_0.7fr_0.7fr_40px] items-center gap-4 border-b border-hairline px-5 py-3 text-[13px] hover:bg-gray-50/60">
+      <div className="font-mono text-[12.5px] text-ink truncate">{c.key}</div>
+      <div className="text-[12.5px] text-ink truncate">{c.username}</div>
+      <div className="flex items-center gap-2 text-muted">
+        <button className="text-gray-400 hover:text-ink"><EyeIcon size={14} /></button>
+        <span className="tracking-[2px] leading-none">•••••••••••••</span>
+      </div>
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-gray-700 ring-1 ring-gray-200 bg-white">{c.updatedBy[0]}</div>
         <div className="min-w-0">
           <div className="truncate text-[12.5px] font-medium text-ink">{c.updatedBy}</div>
           <div className="truncate text-[11.5px] text-muted">{c.date}</div>
         </div>
       </div>
+      <UserCell name={c.createdBy} color={c.createdColor} />
+      <div className="flex items-center gap-1.5 text-[12.5px] text-ink">
+        <span>{c.usedByList.length}</span>
+        <Tooltip
+          label={
+            <ul className="pointer-events-auto flex flex-col gap-0.5 px-1 py-1 text-[12px] font-normal text-ink">
+              {c.usedByList.map((p) => (
+                <li key={p}>
+                  <a
+                    href="#/browser-automation/recording"
+                    className="block rounded px-2 py-1 hover:bg-gray-100 hover:text-ink"
+                  >
+                    {p}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          }
+          width={240}
+        >
+          <button className="flex h-4 w-4 items-center justify-center text-muted hover:text-ink">
+            <InfoCircle size={13} />
+          </button>
+        </Tooltip>
+      </div>
+      <div className="text-[12.5px] text-ink">{c.timesUsed}</div>
       <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted hover:bg-gray-100"><Kebab size={16} /></button>
     </div>
   )
@@ -45,19 +81,16 @@ function CredentialRow({ c }) {
 function CredentialsView() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <p className="text-[13px] text-muted">Secrets available to your browser recordings across environments.</p>
-        <button className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90">
-          <Plus size={14} sw={2.2} /> New Variable
-        </button>
-      </div>
-      <div className="overflow-hidden rounded-xl border border-hairline bg-white">
-        <div className="grid grid-cols-[1.2fr_1.4fr_1.4fr_1.4fr_1fr_40px] items-center gap-4 border-b border-hairline bg-gray-50/70 px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
+      <p className="text-[13px] text-muted">Secrets available to your browser recordings across environments.</p>
+      <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="grid grid-cols-[1.2fr_1fr_1fr_1.3fr_1.3fr_0.7fr_0.7fr_40px] items-center gap-4 rounded-t-xl border-b border-hairline bg-gray-50/70 px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
           <div>Key</div>
-          <div>Development Value</div>
-          <div>Staging Value</div>
-          <div>Production Value</div>
+          <div>Username</div>
+          <div>Password</div>
           <div>Last Updated By</div>
+          <div>Created By</div>
+          <div>Used By</div>
+          <div>Times Used</div>
           <div />
         </div>
         {CREDENTIALS.map((c) => <CredentialRow key={c.key} c={c} />)}
@@ -342,7 +375,7 @@ function useHashSubroute() {
 }
 
 const TABS = [
-  ['recordings', 'Recordings', '/browser-automation'],
+  ['recordings', 'Browser recordings', '/browser-automation'],
   ['credentials', 'Credentials', '/browser-automation/credentials'],
 ]
 
@@ -371,6 +404,7 @@ export default function BrowserAutomationPage() {
   const [filter, setFilter] = useState('all')
   const [q, setQ] = useState('')
   const [importOpen, setImportOpen] = useState(false)
+  const [sandboxOpen, setSandboxOpen] = useState(false)
   const active = useHashSubroute()
 
   const filtered = RECORDINGS.filter(r => {
@@ -396,20 +430,27 @@ export default function BrowserAutomationPage() {
                 >
                   <Upload size={14} /> Import
                 </button>
-                <button className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90">
+                <button
+                  onClick={() => setSandboxOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
+                >
                   <Plus size={14} sw={2.2} /> New recording
                 </button>
               </>
+            )}
+            {active === 'credentials' && (
+              <button className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90">
+                <Plus size={14} sw={2.2} /> New Variable
+              </button>
             )}
           </div>
         </div>
 
         <main className="min-w-0 flex-1 overflow-y-auto bg-gray-50">
-          <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-5 px-8 py-6">
+          <div className="flex w-full flex-col gap-5 px-8 py-6">
             <div><PageTabs active={active} /></div>
             {active === 'recordings' && (
               <>
-                <p className="text-[13px] text-muted">Reusable browser recordings your agents can replay on demand.</p>
                 <div className="flex items-center gap-3">
                   <div className="relative w-[260px]">
                     <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"><Search size={14} /></span>
@@ -443,6 +484,7 @@ export default function BrowserAutomationPage() {
       </div>
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
+      {sandboxOpen && <SandboxModal onClose={() => setSandboxOpen(false)} onSaveRecording={() => setSandboxOpen(false)} />}
     </div>
   )
 }

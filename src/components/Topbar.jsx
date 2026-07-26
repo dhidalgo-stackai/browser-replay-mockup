@@ -36,9 +36,14 @@ export default function Topbar() {
         <IconButton title="Settings">
           <Gear size={18} />
         </IconButton>
+
+        <div className="h-5 w-px bg-gray-200" />
+
         <IconButton title="Save">
           <Save size={18} />
         </IconButton>
+
+        <div className="h-5 w-px bg-gray-200" />
 
         <button className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium">
           <Play size={14} />
@@ -50,6 +55,8 @@ export default function Topbar() {
           <ChevronDown size={14} sw={2.5} />
           <span className="absolute -right-[3px] -top-[3px] h-2.5 w-2.5 rounded-full border-2 border-white bg-blue-500" />
         </button>
+
+        <div className="h-5 w-px bg-gray-200" />
 
         <div className="cursor-pointer px-1 text-muted">
           <Kebab size={18} />

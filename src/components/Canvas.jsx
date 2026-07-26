@@ -115,45 +115,6 @@ export default function Canvas({ onNodeClick }) {
         meta={['0.00 sec', 'v1.0.0']}
       />
 
-      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-[10px] border border-gray-200 bg-white p-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
-        <div className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#f4f0ff] px-2.5 py-1.5 font-medium text-[#6d28d9]">
-          <StarFilled size={14} />
-          Ask AI
-        </div>
-        <div className="flex cursor-pointer items-center gap-1.5 rounded-md bg-ink px-2.5 py-1.5 font-medium text-white">
-          <Plus size={14} />
-          Add
-        </div>
-        <Divider />
-        <ToolIcon title="Undo">
-          <Undo size={16} />
-        </ToolIcon>
-        <ToolIcon title="Redo">
-          <Redo size={16} />
-        </ToolIcon>
-        <Divider />
-        <ToolIcon title="Zoom in">
-          <ZoomIn size={16} />
-        </ToolIcon>
-        <ToolIcon title="Zoom out">
-          <ZoomOut size={16} />
-        </ToolIcon>
-        <ToolIcon title="Select">
-          <Cursor size={16} />
-        </ToolIcon>
-        <ToolIcon title="Fit">
-          <Fit size={16} />
-        </ToolIcon>
-        <ToolIcon title="Page">
-          <PageFile size={16} />
-        </ToolIcon>
-        <ToolIcon title="Layout">
-          <LayoutCube size={16} />
-        </ToolIcon>
-        <ToolIcon title="Screenshot">
-          <Camera size={16} />
-        </ToolIcon>
-      </div>
     </div>
   )
 }

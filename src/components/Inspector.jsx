@@ -198,7 +198,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
             <div className="inline-flex items-center gap-0.5 rounded-[7px] bg-gray-100 p-[2px]">
               {[
                 ['ai', 'AI Agent'],
-                ['manual', 'Replay'],
+                ['manual', 'Replay recording'],
               ].map(([key, label]) => (
                 <div
                   key={key}
