@@ -802,13 +802,13 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
                       <NodeRefPreview />
                     </div>
                     <div className="px-2.5 py-2 text-[11.5px] font-normal text-muted">
-                      Not hardcoded — the value comes from another node when used in a workflow.
+                      Filled in the workflow builder where this recording is called — either as manual input or referenced from another node.
                     </div>
                   </div>
                 )],
                 ['credential', 'Credential', <span className="text-[11.5px] font-normal text-muted">Injected from the vault, never in logs.</span>],
               ].map(([k, name, tip]) => (
-                <Tooltip key={k} label={tip} side="right" width={k === 'dynamic' ? 280 : 200} className="block w-full">
+                <Tooltip key={k} label={tip} side="right" width={k === 'dynamic' ? 280 : 200} padded={k !== 'dynamic'} className="block w-full">
                   <button
                     type="button"
                     onClick={() => { setSource(k); setMenuOpen(false) }}
