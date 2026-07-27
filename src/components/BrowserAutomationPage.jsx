@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import LeftRail from './LeftRail.jsx'
-import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile, InfoCircle, Folder } from './icons.jsx'
+import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile, InfoCircle, Folder, Monitor } from './icons.jsx'
 import Tooltip from './Tooltip.jsx'
 import SandboxModal from './SandboxModal.jsx'
 
@@ -173,6 +173,7 @@ const RECORDINGS = [
     desc: 'Pulls the weekly qualified-leads report from Salesforce Lightning and drops it into the shared drive.',
     updated: 'July 18, 2026',
     site: 'lightning.force.com',
+    mode: 'agent',
   },
   {
     name: 'Sync Zendesk tickets',
@@ -281,14 +282,26 @@ function Card({ r }) {
   const initials = r.author.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
   return (
     <a
-      href="#/browser-automation/recording"
+      href={r.mode === 'agent' ? '#/browser-automation/agent' : '#/browser-automation/recording'}
       className="group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-sm transition"
     >
       <div className="flex items-start justify-between gap-2 px-4 pt-3.5">
         <div className="flex min-w-0 items-start gap-2.5">
           <SiteLogo site={r.site} name={r.name} />
           <div className="min-w-0">
-            <div className="text-[14px] font-semibold text-ink">{r.name}</div>
+            <div className="flex items-center gap-2">
+              <div className="text-[14px] font-semibold text-ink">{r.name}</div>
+              <span
+                className={
+                  'flex-shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-medium ring-1 ' +
+                  (r.mode === 'agent'
+                    ? 'bg-violet-50 text-violet-700 ring-violet-200'
+                    : 'bg-gray-50 text-gray-600 ring-gray-200')
+                }
+              >
+                {r.mode === 'agent' ? 'AI Agent' : 'Recorded'}
+              </span>
+            </div>
             <div className="mt-0.5 truncate text-[12px] text-muted">{r.site}</div>
           </div>
         </div>
@@ -646,7 +659,7 @@ export default function BrowserAutomationPage() {
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-[#fafafa] px-3.5 py-2.5">
           <div className="flex items-center gap-1.5 text-[14px] text-muted">
-            <span className="opacity-60"><Folder size={16} /></span>
+            <span className="opacity-60"><Monitor size={16} /></span>
             <span className="font-medium text-ink">Browser automation</span>
           </div>
           <div className="ml-auto flex items-center gap-2">

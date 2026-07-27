@@ -4,7 +4,7 @@ import ReplayModal from './ReplayModal.jsx'
 import Tooltip from './Tooltip.jsx'
 import {
   Folder, Gear, Save, Play, ChevronDown, Kebab, Plus, X,
-  Globe, Cursor,
+  Globe, Cursor, Monitor,
 } from './icons.jsx'
 
 /* Local micro-icons that aren't already in icons.jsx */
@@ -1419,7 +1419,7 @@ export default function FlowDetailPage() {
       {/* Topbar — mirrors src/components/Topbar.jsx styling */}
       <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-white px-3.5 py-2.5">
         <div className="flex items-center gap-1.5 text-[14px] text-muted">
-          <span className="opacity-60"><Folder size={16} /></span>
+          <span className="opacity-60"><Monitor size={16} /></span>
           <a href="#/browser-automation" className="hover:text-ink">Browser automation</a>
           <span className="text-gray-300">/</span>
           <span className="font-medium text-ink">Download vendor invoices</span>
@@ -1499,7 +1499,7 @@ export default function FlowDetailPage() {
       {/* Body */}
       <div className="flex min-h-0 flex-1">
         <main className={`${mainTab === 'steps' ? 'canvas-dots' : 'bg-[#fafafa]'} no-scrollbar min-w-0 flex-1 overflow-y-auto`}>
-          <div className={`mx-auto flex w-full ${mainTab === 'runs' && !openRun ? 'max-w-[1200px]' : 'max-w-[880px]'} flex-col gap-5 px-8 py-6`}>
+          <div className={`mx-auto flex w-full ${(mainTab === 'runs' && !openRun) || mainTab === 'steps' ? 'max-w-[1200px]' : 'max-w-[880px]'} flex-col gap-5 px-8 py-6`}>
 
             {mainTab === 'steps' && (() => {
               const stepDefs = [

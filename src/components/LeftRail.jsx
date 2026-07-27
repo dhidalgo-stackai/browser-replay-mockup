@@ -99,7 +99,7 @@ function MoreSection({ isExpanded, route }) {
             <circle cx="19" cy="12" r="1.5" />
           </svg>
         </span>
-        <span className={'min-w-0 flex-1 whitespace-nowrap ' + fade}>More</span>
+        <span className={'min-w-0 flex-1 whitespace-nowrap ' + fade}>{open ? 'Less' : 'More'}</span>
         <span
           className={
             'hidden h-4 w-4 items-center justify-center text-muted transition-transform group-hover:flex ' +

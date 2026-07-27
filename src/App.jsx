@@ -5,6 +5,7 @@ import Canvas from './components/Canvas.jsx'
 import Inspector from './components/Inspector.jsx'
 import SandboxModal from './components/SandboxModal.jsx'
 import FlowDetailPage from './components/FlowDetailPage.jsx'
+import AgentFlowDetailPage from './components/AgentFlowDetailPage.jsx'
 import BrowserAutomationPage from './components/BrowserAutomationPage.jsx'
 
 function useHashRoute() {
@@ -31,6 +32,7 @@ export default function App() {
   }
 
   if (route.startsWith('/browser-automation/recording')) return <FlowDetailPage />
+  if (route.startsWith('/browser-automation/agent')) return <AgentFlowDetailPage />
   if (route.startsWith('/browser-automation')) return <BrowserAutomationPage />
 
   return (

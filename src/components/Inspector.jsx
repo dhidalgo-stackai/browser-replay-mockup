@@ -290,18 +290,58 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
   )
 }
 
-function InputRow({ label, type = 'string', required = false, expanded = false, children }) {
+function InputRow({ label, type = 'string', required = false, expanded = false, collapsible = false, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  const isOpen = collapsible ? open : expanded
   return (
     <>
-      <div className="mb-2 flex items-center gap-1.5">
+      <div
+        className={'mb-2 flex items-center gap-1.5 ' + (collapsible ? 'cursor-pointer' : '')}
+        onClick={collapsible ? () => setOpen((v) => !v) : undefined}
+      >
+        {collapsible && (
+          <span className="-ml-1 flex h-4 w-4 items-center justify-center text-gray-500">
+            <ChevronDown
+              size={12}
+              style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 120ms' }}
+            />
+          </span>
+        )}
         <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
           {label}
         </span>
         {required && <span className="font-bold text-red-500">*</span>}
         <span className="ml-auto font-mono text-[12.5px] text-gray-400">{type}</span>
       </div>
-      {expanded && children && <div className="mb-3.5">{children}</div>}
+      {isOpen && children && <div className="mb-3.5">{children}</div>}
     </>
+  )
+}
+
+const fieldInputClass =
+  'w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none'
+
+function SaveRecordingToggle() {
+  const [on, setOn] = useState(false)
+  return (
+    <div className="mt-2 flex items-center gap-2 text-[13px] text-ink">
+      <span>Save recording to library</span>
+      <button
+        type="button"
+        onClick={() => setOn((v) => !v)}
+        className={
+          'relative ml-auto h-[18px] w-[30px] flex-none cursor-pointer rounded-full transition-colors ' +
+          (on ? 'bg-ink' : 'bg-gray-200')
+        }
+      >
+        <span
+          className={
+            'absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow-sm transition-all ' +
+            (on ? 'left-[14px]' : 'left-[2px]')
+          }
+        />
+      </button>
+    </div>
   )
 }
 
@@ -313,11 +353,29 @@ function AiInputs() {
           placeholder="Navigate to example.com and fill out the contact form"
           className="min-h-[64px] w-full resize-y rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none"
         />
+        <SaveRecordingToggle />
       </InputRow>
-      <InputRow label="Sandbox ID" />
-      <InputRow label="Session" />
-      <InputRow label="Model" />
-      <InputRow label="Max Steps" type="integer" />
+      <InputRow label="Credentials" collapsible>
+        <select className={fieldInputClass} defaultValue="">
+          <option value="" disabled>
+            Select credentials
+          </option>
+          <option value="none">None</option>
+          <option value="default">Default</option>
+        </select>
+      </InputRow>
+      <InputRow label="Sandbox ID" collapsible>
+        <input className={fieldInputClass} placeholder="sbx_…" />
+      </InputRow>
+      <InputRow label="Session" collapsible>
+        <input className={fieldInputClass} placeholder="Session ID" />
+      </InputRow>
+      <InputRow label="Model" collapsible>
+        <input className={fieldInputClass} placeholder="claude-sonnet-5" />
+      </InputRow>
+      <InputRow label="Max Steps" type="integer" collapsible>
+        <input type="number" className={fieldInputClass} placeholder="20" />
+      </InputRow>
     </>
   )
 }
