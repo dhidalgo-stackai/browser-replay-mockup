@@ -1488,7 +1488,6 @@ export default function FlowDetailPage() {
             className="relative flex cursor-pointer items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 font-medium text-white">
             <Play size={13} />
             Replay
-            <ChevronDown size={13} sw={2.5} />
           </button>
 
           <div className="h-5 w-px bg-gray-200" />
@@ -1499,8 +1498,8 @@ export default function FlowDetailPage() {
 
       {/* Body */}
       <div className="flex min-h-0 flex-1">
-        <main className={`${mainTab === 'steps' ? 'canvas-dots' : 'bg-gray-50'} no-scrollbar min-w-0 flex-1 overflow-y-auto`}>
-          <div className="mx-auto flex w-full max-w-[880px] flex-col gap-5 px-8 py-6">
+        <main className={`${mainTab === 'steps' ? 'canvas-dots' : 'bg-[#fafafa]'} no-scrollbar min-w-0 flex-1 overflow-y-auto`}>
+          <div className={`mx-auto flex w-full ${mainTab === 'runs' && !openRun ? 'max-w-[1200px]' : 'max-w-[880px]'} flex-col gap-5 px-8 py-6`}>
 
             {mainTab === 'steps' && (() => {
               const stepDefs = [
@@ -1722,8 +1721,8 @@ export default function FlowDetailPage() {
                 const fillTop = accent === 'red' ? 'rgba(239,68,68,0.14)' : 'rgba(55,65,81,0.10)'
                 const gradId = `sc-grad-${label.replace(/\s+/g, '-').toLowerCase()}`
                 return (
-                  <div className="overflow-hidden rounded-lg border border-hairline bg-white">
-                    <div className="flex items-center gap-1.5 border-b border-hairline bg-gray-50 px-3.5 py-2.5 text-[12.5px] text-muted">
+                  <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                    <div className="flex items-center gap-1.5 border-b border-gray-200 bg-[#f2f2f2] px-3.5 py-2.5 text-[12.5px] text-muted">
                       {label}
                       <span className="text-gray-400"><Ic size={12}><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></Ic></span>
                     </div>
@@ -1764,11 +1763,14 @@ export default function FlowDetailPage() {
               ]
 
               const runs = [
-                ['ok',   'Succeeded',                  '2 hours ago',        'AP Reconciliation',   'Scheduled', '41s',    '—'],
-                ['ok',   'Succeeded',                  'Yesterday, 6:00 AM', 'AP Reconciliation',   'Scheduled', '39s',    '—'],
-                ['fail', 'Failed · agent intervened', 'Jul 8, 6:00 AM',     'Vendor payment sync', 'Trigger',   '2m 04s', 'Selector drift'],
-                ['ok',   'Succeeded',                  'Jul 7, 6:00 AM',     'AP Reconciliation',   'Scheduled', '40s',    '—'],
-                ['ok',   'Succeeded · agent intervened', 'Jul 5, 6:00 AM',   'Audit trail export',  'Manual',    '1m 58s', 'Recovered'],
+                ['ok',   'Succeeded',                  '2 hours ago',        'AP Reconciliation',   'Builder',        'v11', 'dhidalgo@stack-ai.com', '41s',    '—'],
+                ['ok',   'Succeeded',                  'Yesterday, 6:00 AM', 'AP Reconciliation',   'Trigger',        'v11', 'System',                '39s',    '—'],
+                ['fail', 'Failed · agent intervened', 'Jul 8, 6:00 AM',     'Vendor payment sync', 'Trigger',        'v10', 'System',                '2m 04s', 'Selector drift'],
+                ['ok',   'Succeeded',                  'Jul 7, 6:00 AM',     'AP Reconciliation',   'Builder',        'v10', 'dhidalgo@stack-ai.com', '40s',    '—'],
+                ['ok',   'Succeeded · agent intervened', 'Jul 5, 6:00 AM',   'Audit trail export',  'Chat assistant', 'v9',  'dhidalgo@stack-ai.com', '1m 58s', 'Recovered'],
+                ['ok',   'Succeeded',                  'Jul 4, 6:00 AM',     'AP Reconciliation',   'Trigger',        'v9',  'System',                '42s',    '—'],
+                ['ok',   'Succeeded',                  'Jul 3, 6:00 AM',     'AP Reconciliation',   'Trigger',        'v9',  'System',                '40s',    '—'],
+                ['ok',   'Succeeded',                  'Jul 2, 6:00 AM',     'Vendor payment sync', 'Trigger',        'v8',  'System',                '38s',    '—'],
               ]
 
               return (
@@ -1785,7 +1787,7 @@ export default function FlowDetailPage() {
                   </div>
 
                   {/* Stat cards */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <StatCard label="Runs" value="284" bars={runBars} />
                     <StatCard label="Users" value="7" bars={userBars} />
                     <StatCard label="Errors" value="3" bars={errorBars} accent="red" />
@@ -1807,31 +1809,58 @@ export default function FlowDetailPage() {
                   </div>
 
                   {/* Recent runs table */}
-                  <div className="overflow-hidden rounded-lg border border-hairline bg-white">
-                    <div className="grid grid-cols-[1fr_1.1fr_1.3fr_0.8fr_0.7fr_0.9fr] gap-3 border-b border-hairline bg-gray-50 px-4 py-2.5 text-[11px] font-medium text-muted">
+                  <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                    <div className="grid grid-cols-[1.2fr_1fr_0.5fr_0.9fr_1.3fr_1.2fr_0.6fr_0.9fr] gap-3 border-b border-gray-200 bg-[#f2f2f2] px-4 py-2.5 text-[11px] font-medium text-muted">
                       <div className="flex items-center gap-1">Status</div>
                       <div className="flex items-center gap-1">Started <IcCaret size={10} /></div>
+                      <div className="flex items-center gap-1">Version</div>
+                      <div className="flex items-center gap-1">Run type</div>
+                      <div className="flex items-center gap-1">Ran by</div>
                       <div className="flex items-center gap-1">Called by</div>
-                      <div className="flex items-center gap-1">Trigger</div>
                       <div className="flex items-center justify-end gap-1">Duration</div>
                       <div className="flex items-center gap-1">Notes</div>
                     </div>
-                    {runs.map(([st, status, when, calledBy, trigger, dur, notes], i) => (
-                      <div
-                        key={i}
-                        onClick={() => setOpenRun({ st, status, when, calledBy, trigger, dur, notes })}
-                        className="grid cursor-pointer grid-cols-[1fr_1.1fr_1.3fr_0.8fr_0.7fr_0.9fr] items-center gap-3 border-b border-hairline px-4 py-2.5 last:border-b-0 hover:bg-gray-50">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <div className={'h-2 w-2 flex-none rounded-full ' + (st === 'ok' ? 'bg-emerald-500' : 'bg-red-500')} />
-                          <div className={'truncate text-[12.5px] ' + (st === 'ok' ? 'text-ink' : 'text-red-700')}>{status}</div>
+                    {runs.map(([st, status, when, calledBy, runType, version, ranBy, dur, notes], i) => {
+                      const isSystem = ranBy === 'System'
+                      const runTypeStyle = runType === 'Trigger'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : runType === 'Builder'
+                          ? 'bg-gray-100 text-gray-700 border-gray-200'
+                          : 'bg-violet-50 text-violet-700 border-violet-200'
+                      const runTypeDot = runType === 'Trigger' ? 'bg-amber-500' : runType === 'Builder' ? 'bg-gray-400' : 'bg-violet-500'
+                      return (
+                        <div
+                          key={i}
+                          onClick={() => setOpenRun({ st, status, when, calledBy, trigger: runType, dur, notes })}
+                          className="grid cursor-pointer grid-cols-[1.2fr_1fr_0.5fr_0.9fr_1.3fr_1.2fr_0.6fr_0.9fr] items-center gap-3 border-b border-hairline px-4 py-2.5 last:border-b-0 hover:bg-gray-50">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <div className={'h-2 w-2 flex-none rounded-full ' + (st === 'ok' ? 'bg-emerald-500' : 'bg-red-500')} />
+                            <div className={'truncate text-[12.5px] ' + (st === 'ok' ? 'text-ink' : 'text-red-700')}>{status}</div>
+                          </div>
+                          <div className="truncate text-[12.5px] text-muted">{when}</div>
+                          <div className="truncate font-mono text-[12px] tabular-nums text-ink">{version}</div>
+                          <div className="min-w-0">
+                            <span className={'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11.5px] ' + runTypeStyle}>
+                              <span className={'h-1.5 w-1.5 rounded-full ' + runTypeDot} />
+                              {runType}
+                            </span>
+                          </div>
+                          <div className="min-w-0">
+                            <span className={'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11.5px] ' + (isSystem ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-blue-200 bg-blue-50 text-blue-700')}>
+                              {isSystem ? (
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                              ) : (
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                              )}
+                              <span className="truncate">{ranBy}</span>
+                            </span>
+                          </div>
+                          <div className="truncate text-[12.5px] text-ink">{calledBy}</div>
+                          <div className="text-right font-mono text-[12.5px] tabular-nums text-ink">{dur}</div>
+                          <div className="truncate text-[12.5px] text-muted">{notes}</div>
                         </div>
-                        <div className="truncate text-[12.5px] text-muted">{when}</div>
-                        <div className="truncate text-[12.5px] text-ink">{calledBy}</div>
-                        <div className="truncate text-[12.5px] text-muted">{trigger}</div>
-                        <div className="text-right font-mono text-[12.5px] tabular-nums text-ink">{dur}</div>
-                        <div className="truncate text-[12.5px] text-muted">{notes}</div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               )
@@ -1843,7 +1872,7 @@ export default function FlowDetailPage() {
                   <span className="text-[13px] font-semibold text-ink">Used by</span>
                   <span className="text-[12px] text-muted">4 workflow projects reference this recording</span>
                 </div>
-                <div className="overflow-hidden rounded-lg border border-hairline bg-white">
+                <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                   {[
                     ['AP Reconciliation', 'Finance ops', '842 runs · Scheduled daily 6:00 AM'],
                     ['Vendor payment sync', 'Finance ops', '318 runs · Triggered by new invoice'],

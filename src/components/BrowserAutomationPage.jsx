@@ -129,7 +129,7 @@ function CredentialsView({ onOpenAccess }) {
     <div className="flex flex-col gap-4">
       <p className="text-[13px] text-muted">Secrets available to your browser recordings across environments.</p>
       <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="grid grid-cols-[1.2fr_1fr_1fr_1.3fr_1.3fr_1fr_0.7fr_0.7fr_40px] items-center gap-4 rounded-t-xl border-b border-hairline bg-gray-50/70 px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
+        <div className="grid grid-cols-[1.2fr_1fr_1fr_1.3fr_1.3fr_1fr_0.7fr_0.7fr_40px] items-center gap-4 rounded-t-xl border-b border-gray-200 bg-[#f2f2f2] px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
           <div>Name</div>
           <div>Username</div>
           <div>Password</div>
@@ -141,7 +141,7 @@ function CredentialsView({ onOpenAccess }) {
           <div />
         </div>
         {CREDENTIALS.map((c) => <CredentialRow key={c.key} c={c} onOpenAccess={onOpenAccess} />)}
-        <div className="flex items-center justify-between rounded-b-xl border-t border-hairline bg-gray-50/70 px-5 py-2.5">
+        <div className="flex items-center justify-between rounded-b-xl border-t border-gray-200 bg-[#f2f2f2] px-5 py-2.5">
           <div className="flex items-center gap-1.5">
             <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">‹ Prev</button>
             <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">Next ›</button>
@@ -282,7 +282,7 @@ function Card({ r }) {
   return (
     <a
       href="#/browser-automation/recording"
-      className="group flex flex-col overflow-hidden rounded-lg border border-hairline bg-white hover:border-gray-300 hover:shadow-sm transition"
+      className="group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-sm transition"
     >
       <div className="flex items-start justify-between gap-2 px-4 pt-3.5">
         <div className="flex min-w-0 items-start gap-2.5">
@@ -343,7 +343,7 @@ function NewCredentialModal({ onClose }) {
               value={key}
               onChange={(e) => setKey(e.target.value)}
               placeholder="example.com"
-              className="mt-1.5 h-9 w-full rounded-[8px] border border-hairline bg-[#f8f9fb] px-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+              className="mt-1.5 h-9 w-full rounded-[8px] border border-hairline bg-white px-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
             />
           </div>
 
@@ -355,7 +355,7 @@ function NewCredentialModal({ onClose }) {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="user@company.com"
-              className="mt-1.5 h-9 w-full rounded-[8px] border border-hairline bg-[#f8f9fb] px-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+              className="mt-1.5 h-9 w-full rounded-[8px] border border-hairline bg-white px-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
             />
           </div>
 
@@ -369,7 +369,7 @@ function NewCredentialModal({ onClose }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="sk-abc123"
-                className="h-9 w-full rounded-[8px] border border-hairline bg-[#f8f9fb] px-3 pr-9 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+                className="h-9 w-full rounded-[8px] border border-hairline bg-white px-3 pr-9 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
               />
               <button
                 type="button"
@@ -389,7 +389,7 @@ function NewCredentialModal({ onClose }) {
               <div className="relative">
                 <input
                   placeholder="Add groups or people..."
-                  className="h-9 w-full rounded-[8px] border border-hairline bg-[#f8f9fb] px-3 pr-8 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+                  className="h-9 w-full rounded-[8px] border border-hairline bg-white px-3 pr-8 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
                 />
                 <ChevronDown size={12} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
               </div>
@@ -526,7 +526,7 @@ function ImportModal({ onClose }) {
                 'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[10px] border border-dashed px-6 py-9 text-center transition ' +
                 (dragOver
                   ? 'border-ink bg-gray-50'
-                  : 'border-hairline bg-[#f8f9fb] hover:border-gray-300')
+                  : 'border-hairline bg-white hover:border-gray-300')
               }
             >
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-muted ring-1 ring-hairline">
@@ -556,7 +556,7 @@ function ImportModal({ onClose }) {
                 value={script}
                 onChange={(e) => setScript(e.target.value)}
                 placeholder={"import { test } from '@playwright/test'\n\ntest('flow', async ({ page }) => {\n  await page.goto('https://…')\n})"}
-                className="h-[180px] w-full resize-none rounded-[10px] border border-hairline bg-[#f8f9fb] px-3 py-2 font-mono text-[12px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+                className="h-[180px] w-full resize-none rounded-[10px] border border-hairline bg-white px-3 py-2 font-mono text-[12px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
               />
             </div>
           )}
@@ -644,7 +644,7 @@ export default function BrowserAutomationPage() {
       <LeftRail />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-gray-50 px-3.5 py-2.5">
+        <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-[#fafafa] px-3.5 py-2.5">
           <div className="flex items-center gap-1.5 text-[14px] text-muted">
             <span className="opacity-60"><Folder size={16} /></span>
             <span className="font-medium text-ink">Browser automation</span>
@@ -677,7 +677,7 @@ export default function BrowserAutomationPage() {
           </div>
         </div>
 
-        <main className="min-w-0 flex-1 overflow-y-auto bg-gray-50">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-[#fafafa]">
           <div className="flex w-full flex-col gap-5 px-8 py-6">
             <div><PageTabs active={active} /></div>
             {active === 'recordings' && (
