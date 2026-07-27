@@ -192,10 +192,12 @@ function CheckIcon({ size = 11 }) {
 function extractInputsFromSteps(steps) {
   const inputs = []
   const seen = new Set()
+  const isCredentialLabel = (l) => /password|username|email|user\s*id|login/i.test(l)
   for (const step of steps) {
     let m = step.match(/^Type "([^"]*)" into "([^"]+)"$/)
     if (m) {
       const [, value, label] = m
+      if (isCredentialLabel(label)) continue
       if (!seen.has(label)) { seen.add(label); inputs.push({ label, value }) }
       continue
     }
