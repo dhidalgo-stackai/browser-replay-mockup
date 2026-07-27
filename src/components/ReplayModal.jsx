@@ -178,7 +178,7 @@ export default function ReplayModal({ onClose, flowName = 'Flow' }) {
     <div
       data-modal-root
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      className="fixed inset-0 z-[1000] flex items-stretch justify-center bg-black/45 p-10"
+      className="fixed inset-0 z-[1000] flex items-stretch justify-center bg-black/20 backdrop-blur-sm p-10"
     >
       <div className="flex w-full max-w-[1360px] flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
         <div className="flex flex-shrink-0 items-center gap-2.5 border-b border-hairline px-[18px] py-3.5">

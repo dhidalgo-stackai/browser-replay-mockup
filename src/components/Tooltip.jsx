@@ -24,7 +24,8 @@ export default function Tooltip({ label, children, side = 'top', className = '',
           role="tooltip"
           className={
             'pointer-events-none absolute z-50 overflow-hidden rounded-md border border-hairline bg-white text-[11.5px] font-medium text-ink shadow-[0_4px_12px_rgba(0,0,0,0.12)] ' +
-            (width ? 'whitespace-normal ' : wide ? 'w-64 whitespace-normal px-2 py-1 ' : 'whitespace-nowrap px-2 py-1 ') +
+            'px-2 py-1 ' +
+            (width ? 'whitespace-normal ' : wide ? 'w-64 whitespace-normal ' : 'whitespace-nowrap ') +
             pos
           }
           style={width ? { width } : undefined}

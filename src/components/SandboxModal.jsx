@@ -206,7 +206,7 @@ export default function SandboxModal({ onClose, onSaveRecording }) {
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
-      className="fixed inset-0 z-[1000] flex items-stretch justify-center bg-black/45 p-10"
+      className="fixed inset-0 z-[1000] flex items-stretch justify-center bg-black/20 backdrop-blur-sm p-10"
     >
       <div className="flex w-full max-w-[1360px] flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
         {/* Modal header */}

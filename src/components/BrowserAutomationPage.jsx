@@ -1,39 +1,84 @@
 import { useEffect, useRef, useState } from 'react'
 import LeftRail from './LeftRail.jsx'
-import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile, InfoCircle } from './icons.jsx'
+import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile, InfoCircle, Folder } from './icons.jsx'
 import Tooltip from './Tooltip.jsx'
 import SandboxModal from './SandboxModal.jsx'
 
-function EyeIcon({ size = 14 }) {
+function EyeIcon({ size = 14, off = false }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
+      {off && <line x1="4" y1="20" x2="20" y2="4" />}
     </svg>
   )
 }
 
 const CREDENTIALS = [
-  { key: 'CLAUDE_API_KEY', username: 'api@stack.ai', updatedBy: 'Ppaudel', date: 'February 27, 2026', color: 'bg-indigo-500', createdBy: 'Ppaudel', createdColor: 'bg-indigo-500', usedByList: ['Download vendor invoices', 'Extract Salesforce lead list', 'Sync Zendesk tickets', 'Refresh HubSpot deals'], timesUsed: 128 },
-  { key: 'bridge_api_key', username: 'bridge-svc', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300', createdBy: 'German Parada', createdColor: 'bg-gray-300', usedByList: ['Post weekly ops report', 'Renew SSL certificate'], timesUsed: 47 },
-  { key: 'bridge_base_url', username: '—', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300', createdBy: 'German Parada', createdColor: 'bg-gray-300', usedByList: ['Post weekly ops report', 'Renew SSL certificate'], timesUsed: 47 },
-  { key: 'openai_api_key', username: 'davidh@stack.ai', updatedBy: 'David Hidalgo', date: 'May 3, 2026', color: 'bg-emerald-500', createdBy: 'David Hidalgo', createdColor: 'bg-emerald-500', usedByList: ['Download vendor invoices', 'Extract Salesforce lead list', 'Update pricing sheet on Shopify', 'Competitor page screenshots', 'Refresh HubSpot deals', 'test recording'], timesUsed: 312 },
-  { key: 'segment_write_key', username: 'analytics', updatedBy: 'Jenny Liang', date: 'May 12, 2026', color: 'bg-amber-500', createdBy: 'Jacob ZY Yoon', createdColor: 'bg-rose-500', usedByList: ['Post weekly ops report'], timesUsed: 9 },
+  { key: 'https://console.anthropic.com', username: 'api@stack.ai', updatedBy: 'Ppaudel', date: 'February 27, 2026', color: 'bg-indigo-500', createdBy: 'Ppaudel', createdColor: 'bg-indigo-500', usedByList: ['Download vendor invoices', 'Extract Salesforce lead list', 'Sync Zendesk tickets', 'Refresh HubSpot deals'], timesUsed: 128, access: ['Ppaudel', 'David Hidalgo', 'Jenny Liang', 'Jacob ZY Yoon', 'German Parada', 'Shani Fargun', 'John Miller'] },
+  { key: 'https://bridge.stack.ai', username: 'bridge-svc', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300', createdBy: 'German Parada', createdColor: 'bg-gray-300', usedByList: ['Post weekly ops report', 'Renew SSL certificate'], timesUsed: 47, access: ['German Parada', 'David Hidalgo', 'Jenny Liang'] },
+  { key: 'https://api.bridge.stack.ai', username: '—', updatedBy: 'German Parada', date: 'April 16, 2026', color: 'bg-gray-300', createdBy: 'German Parada', createdColor: 'bg-gray-300', usedByList: ['Post weekly ops report', 'Renew SSL certificate'], timesUsed: 47, access: ['German Parada', 'David Hidalgo'] },
+  { key: 'https://platform.openai.com', username: 'davidh@stack.ai', updatedBy: 'David Hidalgo', date: 'May 3, 2026', color: 'bg-emerald-500', createdBy: 'David Hidalgo', createdColor: 'bg-emerald-500', usedByList: ['Download vendor invoices', 'Extract Salesforce lead list', 'Update pricing sheet on Shopify', 'Competitor page screenshots', 'Refresh HubSpot deals', 'test recording'], timesUsed: 312, access: ['David Hidalgo', 'Ppaudel', 'Jenny Liang', 'Jacob ZY Yoon', 'German Parada', 'Shani Fargun', 'John Miller', 'Kate Ruiz', 'Zack Otto', 'Marta Silva'] },
+  { key: 'https://app.segment.com', username: 'analytics', updatedBy: 'Jenny Liang', date: 'May 12, 2026', color: 'bg-amber-500', createdBy: 'Jacob ZY Yoon', createdColor: 'bg-rose-500', usedByList: ['Post weekly ops report'], timesUsed: 9, access: ['Jenny Liang', 'Jacob ZY Yoon'] },
 ]
+
+const AVATAR_COLORS = ['bg-indigo-100', 'bg-emerald-100', 'bg-amber-100', 'bg-rose-100', 'bg-sky-100', 'bg-violet-100', 'bg-teal-100', 'bg-pink-100', 'bg-orange-100', 'bg-cyan-100']
+function colorFor(name) {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return AVATAR_COLORS[h % AVATAR_COLORS.length]
+}
+
+function AccessStack({ users, onClick }) {
+  const max = 4
+  const shown = users.slice(0, max)
+  const extra = users.length - shown.length
+  return (
+    <Tooltip
+      label={
+        <ul className="pointer-events-auto flex max-h-[220px] flex-col gap-0.5 overflow-y-auto px-1 py-1 text-[12px] font-normal text-ink">
+          {users.map((u) => (
+            <li key={u} className="flex items-center gap-2 px-2 py-1">
+              <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-gray-100 text-[10px] font-semibold text-gray-700 ring-1 ring-gray-200">{u[0]}</div>
+              <span className="truncate">{u}</span>
+            </li>
+          ))}
+        </ul>
+      }
+      width={200}
+    >
+      <button onClick={onClick} className="flex items-center -space-x-1 rounded-md p-0.5 -m-0.5 hover:bg-gray-100">
+        {shown.map((u) => (
+          <div
+            key={u}
+            className="flex h-6 w-6 items-center justify-center rounded-md bg-gray-100 text-[10.5px] font-semibold text-gray-700 ring-1 ring-gray-200"
+          >
+            {u[0]}
+          </div>
+        ))}
+        {extra > 0 && (
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-[10px] font-semibold text-gray-600 ring-1 ring-gray-200">
+            +{extra}
+          </div>
+        )}
+      </button>
+    </Tooltip>
+  )
+}
 
 function UserCell({ name, color }) {
   const initial = name[0]
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-gray-700 ring-1 ring-gray-200 bg-white">{initial}</div>
+      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-gray-700 ring-1 ring-gray-200 bg-gray-100">{initial}</div>
       <div className="truncate text-[12.5px] text-ink">{name}</div>
     </div>
   )
 }
 
-function CredentialRow({ c }) {
+function CredentialRow({ c, onOpenAccess }) {
   return (
-    <div className="grid grid-cols-[1.2fr_1fr_1fr_1.3fr_1.3fr_0.7fr_0.7fr_40px] items-center gap-4 border-b border-hairline px-5 py-3 text-[13px] hover:bg-gray-50/60">
+    <div className="grid grid-cols-[1.2fr_1fr_1fr_1.3fr_1.3fr_1fr_0.7fr_0.7fr_40px] items-center gap-4 border-b border-hairline px-5 py-3 text-[13px] hover:bg-gray-50/60">
       <div className="font-mono text-[12.5px] text-ink truncate">{c.key}</div>
       <div className="text-[12.5px] text-ink truncate">{c.username}</div>
       <div className="flex items-center gap-2 text-muted">
@@ -41,13 +86,14 @@ function CredentialRow({ c }) {
         <span className="tracking-[2px] leading-none">•••••••••••••</span>
       </div>
       <div className="flex items-center gap-2 min-w-0">
-        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-gray-700 ring-1 ring-gray-200 bg-white">{c.updatedBy[0]}</div>
+        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-gray-700 ring-1 ring-gray-200 bg-gray-100">{c.updatedBy[0]}</div>
         <div className="min-w-0">
           <div className="truncate text-[12.5px] font-medium text-ink">{c.updatedBy}</div>
           <div className="truncate text-[11.5px] text-muted">{c.date}</div>
         </div>
       </div>
       <UserCell name={c.createdBy} color={c.createdColor} />
+      <AccessStack users={c.access} onClick={onOpenAccess} />
       <div className="flex items-center gap-1.5 text-[12.5px] text-ink">
         <span>{c.usedByList.length}</span>
         <Tooltip
@@ -78,23 +124,24 @@ function CredentialRow({ c }) {
   )
 }
 
-function CredentialsView() {
+function CredentialsView({ onOpenAccess }) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[13px] text-muted">Secrets available to your browser recordings across environments.</p>
       <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="grid grid-cols-[1.2fr_1fr_1fr_1.3fr_1.3fr_0.7fr_0.7fr_40px] items-center gap-4 rounded-t-xl border-b border-hairline bg-gray-50/70 px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
-          <div>Key</div>
+        <div className="grid grid-cols-[1.2fr_1fr_1fr_1.3fr_1.3fr_1fr_0.7fr_0.7fr_40px] items-center gap-4 rounded-t-xl border-b border-hairline bg-gray-50/70 px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
+          <div>Name</div>
           <div>Username</div>
           <div>Password</div>
           <div>Last Updated By</div>
           <div>Created By</div>
+          <div>Access</div>
           <div>Used By</div>
           <div>Times Used</div>
           <div />
         </div>
-        {CREDENTIALS.map((c) => <CredentialRow key={c.key} c={c} />)}
-        <div className="flex items-center justify-between px-5 py-2.5">
+        {CREDENTIALS.map((c) => <CredentialRow key={c.key} c={c} onOpenAccess={onOpenAccess} />)}
+        <div className="flex items-center justify-between rounded-b-xl border-t border-hairline bg-gray-50/70 px-5 py-2.5">
           <div className="flex items-center gap-1.5">
             <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">‹ Prev</button>
             <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">Next ›</button>
@@ -195,6 +242,41 @@ function Chip({ active, children, onClick }) {
   )
 }
 
+function siteLogoDomain(site) {
+  if (!site || site === '—' || site === 'various') return null
+  if (site.includes('netsuite')) return 'netsuite.com'
+  if (site.includes('force.com') || site.includes('salesforce')) return 'salesforce.com'
+  if (site.includes('zendesk')) return 'zendesk.com'
+  if (site.includes('notion')) return 'notion.so'
+  if (site.includes('shopify')) return 'shopify.com'
+  if (site.includes('hubspot')) return 'hubspot.com'
+  if (site.includes('registrar')) return null
+  return site.replace(/^https?:\/\//, '').split('/')[0]
+}
+
+function SiteLogo({ site, name }) {
+  const domain = siteLogoDomain(site)
+  const [failed, setFailed] = useState(false)
+  const initial = (name || site || '?')[0].toUpperCase()
+  if (!domain || failed) {
+    return (
+      <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gray-100 text-[13px] font-semibold text-gray-600 ring-1 ring-hairline">
+        {initial}
+      </div>
+    )
+  }
+  return (
+    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-white ring-1 ring-hairline">
+      <img
+        src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
+        onError={() => setFailed(true)}
+        alt=""
+        className="h-4 w-4 object-contain"
+      />
+    </div>
+  )
+}
+
 function Card({ r }) {
   const initials = r.author.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
   return (
@@ -203,9 +285,12 @@ function Card({ r }) {
       className="group flex flex-col overflow-hidden rounded-lg border border-hairline bg-white hover:border-gray-300 hover:shadow-sm transition"
     >
       <div className="flex items-start justify-between gap-2 px-4 pt-3.5">
-        <div className="min-w-0">
-          <div className="text-[14px] font-semibold text-ink">{r.name}</div>
-          <div className="mt-0.5 truncate text-[12px] text-muted">{r.site}</div>
+        <div className="flex min-w-0 items-start gap-2.5">
+          <SiteLogo site={r.site} name={r.name} />
+          <div className="min-w-0">
+            <div className="text-[14px] font-semibold text-ink">{r.name}</div>
+            <div className="mt-0.5 truncate text-[12px] text-muted">{r.site}</div>
+          </div>
         </div>
         <button className="text-muted opacity-0 group-hover:opacity-100" onClick={e => e.preventDefault()}>
           <Kebab size={16} />
@@ -226,6 +311,145 @@ function Card({ r }) {
   )
 }
 
+function NewCredentialModal({ onClose }) {
+  const [key, setKey] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
+  const canAdd = key.trim() && password.trim()
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/20 backdrop-blur-sm p-6"
+    >
+      <div className="anim-modal w-full max-w-[520px] overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-black/5">
+        <div className="flex items-center justify-between border-b border-hairline px-6 py-4">
+          <div className="text-[17px] font-semibold text-ink">New Credential</div>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-gray-100"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-5 px-6 py-5">
+          <div>
+            <label className="block text-[13px] font-medium text-ink underline decoration-gray-300 decoration-[1px] underline-offset-[3px]">
+              Site <span className="text-red-500">*</span>
+            </label>
+            <input
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder="example.com"
+              className="mt-1.5 h-9 w-full rounded-[8px] border border-hairline bg-[#f8f9fb] px-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[13px] font-medium text-ink underline decoration-gray-300 decoration-[1px] underline-offset-[3px]">
+              Username
+            </label>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="user@company.com"
+              className="mt-1.5 h-9 w-full rounded-[8px] border border-hairline bg-[#f8f9fb] px-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[13px] font-medium text-ink underline decoration-gray-300 decoration-[1px] underline-offset-[3px]">
+              Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative mt-1.5">
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="sk-abc123"
+                className="h-9 w-full rounded-[8px] border border-hairline bg-[#f8f9fb] px-3 pr-9 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(s => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded text-muted hover:text-ink"
+              >
+                <EyeIcon size={15} off={showPw} />
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[13px] font-medium text-ink underline decoration-gray-300 decoration-[1px] underline-offset-[3px]">
+              Share access
+            </label>
+            <div className="mt-1.5 flex flex-col gap-2">
+              <div className="relative">
+                <input
+                  placeholder="Add groups or people..."
+                  className="h-9 w-full rounded-[8px] border border-hairline bg-[#f8f9fb] px-3 pr-8 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+                <ChevronDown size={12} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
+              </div>
+              <div className="flex items-center justify-between rounded-[8px] border border-hairline px-3 py-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gray-100 text-[11px] font-semibold text-gray-700 ring-1 ring-gray-200">D</div>
+                  <div className="min-w-0">
+                    <div className="truncate text-[12.5px] font-medium text-ink">David Hidalgo</div>
+                    <div className="truncate text-[11.5px] text-muted">davidh@stack.ai</div>
+                  </div>
+                </div>
+                <button className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-medium text-ink hover:bg-gray-100">
+                  Admin <ChevronDown size={11} />
+                </button>
+              </div>
+              <div className="mt-1 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">General Access</div>
+              <div className="flex items-center justify-between rounded-[8px] border border-hairline px-3 py-2.5">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-muted">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="4" y="11" width="16" height="9" rx="2" />
+                      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-[12.5px] font-medium text-ink">Restricted</div>
+                    <div className="truncate text-[11.5px] text-muted">Only people you add can access this credential</div>
+                  </div>
+                </div>
+                <button className="inline-flex flex-shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[12px] font-medium text-ink hover:bg-gray-100">
+                  Set access <ChevronDown size={11} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50/70 px-6 py-3.5">
+          <button
+            onClick={onClose}
+            className="rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-ink hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            disabled={!canAdd}
+            onClick={onClose}
+            className={
+              'rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-white ' +
+              (canAdd ? 'bg-ink hover:opacity-90' : 'bg-gray-300 cursor-not-allowed')
+            }
+          >
+            Add Credential
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ImportModal({ onClose }) {
   const [file, setFile] = useState(null)
   const [dragOver, setDragOver] = useState(false)
@@ -242,7 +466,7 @@ function ImportModal({ onClose }) {
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/45 p-6"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/20 backdrop-blur-sm p-6"
     >
       <div className="anim-modal w-full max-w-[560px] overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
         <div className="flex items-start justify-between px-6 pt-5">
@@ -305,7 +529,7 @@ function ImportModal({ onClose }) {
                   : 'border-hairline bg-[#f8f9fb] hover:border-gray-300')
               }
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-muted ring-1 ring-hairline">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-muted ring-1 ring-hairline">
                 <PageFile size={18} />
               </div>
               <div className="text-[13.5px] font-medium text-ink">
@@ -405,6 +629,7 @@ export default function BrowserAutomationPage() {
   const [q, setQ] = useState('')
   const [importOpen, setImportOpen] = useState(false)
   const [sandboxOpen, setSandboxOpen] = useState(false)
+  const [credentialOpen, setCredentialOpen] = useState(false)
   const active = useHashSubroute()
 
   const filtered = RECORDINGS.filter(r => {
@@ -419,28 +644,34 @@ export default function BrowserAutomationPage() {
       <LeftRail />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-white px-6 py-3">
-          <div className="text-[15px] font-semibold text-ink">Browser automation</div>
+        <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-gray-50 px-3.5 py-2.5">
+          <div className="flex items-center gap-1.5 text-[14px] text-muted">
+            <span className="opacity-60"><Folder size={16} /></span>
+            <span className="font-medium text-ink">Browser automation</span>
+          </div>
           <div className="ml-auto flex items-center gap-2">
             {active === 'recordings' && (
               <>
                 <button
                   onClick={() => setImportOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-white px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-gray-50"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-hairline bg-white px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-gray-50"
                 >
                   <Upload size={14} /> Import
                 </button>
                 <button
                   onClick={() => setSandboxOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
                 >
                   <Plus size={14} sw={2.2} /> New recording
                 </button>
               </>
             )}
             {active === 'credentials' && (
-              <button className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90">
-                <Plus size={14} sw={2.2} /> New Variable
+              <button
+                onClick={() => setCredentialOpen(true)}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
+              >
+                <Plus size={14} sw={2.2} /> New Credential
               </button>
             )}
           </div>
@@ -478,12 +709,13 @@ export default function BrowserAutomationPage() {
               </div>
             )}
 
-            {active === 'credentials' && <CredentialsView />}
+            {active === 'credentials' && <CredentialsView onOpenAccess={() => setCredentialOpen(true)} />}
           </div>
         </main>
       </div>
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
+      {credentialOpen && <NewCredentialModal onClose={() => setCredentialOpen(false)} />}
       {sandboxOpen && <SandboxModal onClose={() => setSandboxOpen(false)} onSaveRecording={() => setSandboxOpen(false)} />}
     </div>
   )

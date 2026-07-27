@@ -14,7 +14,7 @@ function IconButton({ title, children }) {
 export default function Topbar() {
   return (
     <div className="flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-white px-3.5 py-2.5">
-      <div className="flex items-center gap-1.5 text-[13px] text-muted">
+      <div className="flex items-center gap-1.5 text-[14px] text-muted">
         <span className="opacity-60">
           <Folder size={16} />
         </span>

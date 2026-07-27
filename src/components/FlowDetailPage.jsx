@@ -57,17 +57,9 @@ function stepParts(step) {
   return { verb, prefix: '', chip: rest }
 }
 
-function BrowserFrame({ children, url }) {
+function BrowserFrame({ children }) {
   return (
-    <div className="pointer-events-none flex h-[80px] w-[140px] flex-none flex-col overflow-hidden rounded-md border border-hairline bg-white">
-      <div className="flex flex-none items-center gap-[3px] border-b border-hairline bg-gray-50 px-1.5 py-1">
-        <div className="h-1 w-1 rounded-full bg-gray-300" />
-        <div className="h-1 w-1 rounded-full bg-gray-300" />
-        <div className="h-1 w-1 rounded-full bg-gray-300" />
-        <div className="ml-1 h-[8px] flex-1 truncate rounded-sm bg-white px-1 text-[5px] leading-[8px] text-gray-400">
-          {url || 'localhost'}
-        </div>
-      </div>
+    <div className="pointer-events-none flex h-[80px] w-[140px] flex-none flex-col overflow-hidden rounded-md bg-white">
       <div className="relative min-h-0 flex-1 overflow-hidden">{children}</div>
     </div>
   )
@@ -233,6 +225,7 @@ const ON_ERROR_OPTIONS = [
   ['agent',  'Agent intervenes', 'Agent analyzes the failure and decides how to recover.'],
   ['stop',   'Stop workflow',    'Fail the run immediately.'],
   ['skip',   'Skip step',        'Continue to the next step.'],
+  ['human',  'Human in the loop','Pause and request human review before continuing.'],
 ]
 
 function onErrorLabel(id) {
@@ -327,6 +320,24 @@ function FailurePolicyControls({ value, onChange }) {
           <div className="mt-1.5 text-[11.5px] text-muted">{desc}</div>
         )}
       </div>
+      {value.onError === 'agent' && (
+        <div>
+          <div className="mb-2">
+            <span className="text-[13px] font-medium text-ink [text-decoration:underline_dotted] underline-offset-[6px] decoration-gray-300">
+              Prompt
+            </span>
+            <span className="ml-1.5 text-[11.5px] text-muted">What should the agent do?</span>
+          </div>
+          <textarea
+            value={value.agentPrompt || ''}
+            onChange={(e) => set({ agentPrompt: e.target.value })}
+            onClick={(e) => e.stopPropagation()}
+            rows={3}
+            placeholder="Describe how the agent should recover from a failure at this step."
+            className="w-full resize-y rounded-md border border-hairline bg-white px-3 py-2 text-[13px] text-ink outline-none placeholder:text-gray-400 focus:border-gray-300"
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -503,7 +514,7 @@ function StepItem({ step, stepId, stepNumber, boundInput, boundInputType, defaul
               </>
             ) : (
               <div>
-                <div className="mb-1 text-[11px] uppercase tracking-[0.06em] text-gray-400">
+                <div className="mb-1.5 text-[12.5px] font-medium text-ink">
                   Failure handling
                 </div>
                 <div className="text-[12px] text-muted">
@@ -727,10 +738,16 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
     dynamic: 'Dynamic',
     credential: 'Credential',
   }
-  const credentials = ['NetSuite login', 'Salesforce API key', 'Gmail OAuth']
-  const [credential, setCredential] = useState(credentials[0])
+  const [credentialList, setCredentialList] = useState([
+    { name: 'NetSuite login', meta: 'Created by You, 3 days ago' },
+    { name: 'Salesforce API key', meta: 'Created by You, 2 weeks ago' },
+    { name: 'Gmail OAuth', meta: 'Created by You, 1 month ago' },
+  ])
+  const [credential, setCredential] = useState(credentialList[0].name)
   const [selectedSteps, setSelectedSteps] = useState(input.stepId ? [input.stepId] : [])
   const [credMenuOpen, setCredMenuOpen] = useState(false)
+  const [credQuery, setCredQuery] = useState('')
+  const [newCredOpen, setNewCredOpen] = useState(false)
   const credMenuRef = useRef(null)
   useEffect(() => {
     if (!credMenuOpen) return
@@ -822,19 +839,75 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
               <IcCaret size={11} className="text-gray-400" />
             </button>
             {credMenuOpen && (
-              <div className="anim-pop absolute left-0 top-[calc(100%+4px)] z-10 w-full overflow-hidden rounded-md border border-hairline bg-white shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
-                {credentials.map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => { setCredential(c); setCredMenuOpen(false) }}
-                    className="flex w-full cursor-pointer items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] text-ink hover:bg-gray-50"
-                  >
-                    <IcShield size={11} className="text-muted" />
-                    <span className="truncate">{c}</span>
-                  </button>
-                ))}
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="anim-pop absolute left-0 top-[calc(100%+4px)] z-10 w-[280px] overflow-hidden rounded-md border border-hairline bg-white shadow-[0_6px_20px_rgba(0,0,0,0.08)]"
+              >
+                <div className="flex items-center gap-1.5 border-b border-hairline px-2.5 py-2">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                    <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+                  </svg>
+                  <input
+                    autoFocus
+                    value={credQuery}
+                    onChange={(e) => setCredQuery(e.target.value)}
+                    placeholder="Search connections..."
+                    className="min-w-0 flex-1 bg-transparent text-[12px] text-ink placeholder:text-muted outline-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setCredMenuOpen(false); setNewCredOpen(true) }}
+                  className="flex w-full cursor-pointer items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] text-ink hover:bg-gray-50"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  New connection
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCredMenuOpen(false)}
+                  className="flex w-full cursor-pointer items-center gap-1.5 border-b border-hairline px-2.5 py-1.5 text-left text-[12px] text-ink hover:bg-gray-50"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                    <path d="M7 17L17 7M9 7h8v8" />
+                  </svg>
+                  Manage connections
+                </button>
+                <div className="max-h-[240px] overflow-y-auto py-1">
+                  {credentialList
+                    .filter(c => c.name.toLowerCase().includes(credQuery.toLowerCase()))
+                    .map(c => (
+                      <button
+                        key={c.name}
+                        type="button"
+                        onClick={() => { setCredential(c.name); setCredMenuOpen(false); setCredQuery('') }}
+                        className="flex w-full cursor-pointer flex-col items-start px-2.5 py-1.5 text-left hover:bg-gray-50"
+                      >
+                        <span className="flex items-center gap-1.5 text-[12px] text-ink">
+                          <IcShield size={11} className="text-muted" />
+                          <span className="truncate">{c.name}</span>
+                        </span>
+                        <span className="pl-[18px] text-[11px] text-muted">{c.meta}</span>
+                      </button>
+                    ))}
+                  {credentialList.filter(c => c.name.toLowerCase().includes(credQuery.toLowerCase())).length === 0 && (
+                    <div className="px-2.5 py-2 text-[11.5px] text-muted">No matching connections</div>
+                  )}
+                </div>
               </div>
+            )}
+            {newCredOpen && (
+              <NewConnectionModal
+                onClose={() => setNewCredOpen(false)}
+                onCreate={(name) => {
+                  const entry = { name, meta: 'Created by You, just now' }
+                  setCredentialList(list => [entry, ...list])
+                  setCredential(name)
+                  setNewCredOpen(false)
+                }}
+              />
             )}
           </div>
         ) : (
@@ -1108,6 +1181,85 @@ function BigStepScreen({ verb, prefix, chip }) {
   return null
 }
 
+function NewConnectionModal({ onClose, onCreate }) {
+  const [name, setName] = useState('')
+  const [type, setType] = useState('OAuth')
+  const types = ['OAuth', 'API key', 'Username & password']
+  const canCreate = name.trim().length > 0
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-8"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[440px] overflow-hidden rounded-lg border border-hairline bg-white shadow-[0_10px_40px_rgba(0,0,0,0.15)]"
+      >
+        <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
+          <div className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+            <IcShield size={12} className="text-muted" />
+            New connection
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-muted hover:bg-gray-100"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+        <div className="flex flex-col gap-3 px-4 py-4">
+          <label className="flex flex-col gap-1">
+            <span className="text-[11.5px] font-medium text-muted">Name</span>
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. NetSuite login"
+              className="h-8 rounded-md border border-hairline bg-white px-2 text-[12.5px] text-ink outline-none focus:border-gray-300"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[11.5px] font-medium text-muted">Type</span>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="h-8 cursor-pointer rounded-md border border-hairline bg-white px-2 text-[12.5px] text-ink outline-none focus:border-gray-300"
+            >
+              {types.map(t => <option key={t}>{t}</option>)}
+            </select>
+          </label>
+          <p className="text-[11.5px] text-muted">
+            Credentials are injected from the vault at run time and never appear in logs.
+          </p>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50 px-4 py-2.5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-7 cursor-pointer rounded-md border border-hairline bg-white px-2.5 text-[12px] text-ink hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!canCreate}
+            onClick={() => onCreate(name.trim())}
+            className={
+              'h-7 rounded-md px-2.5 text-[12px] font-medium text-white ' +
+              (canCreate ? 'cursor-pointer bg-ink hover:bg-black' : 'cursor-not-allowed bg-gray-300')
+            }
+          >
+            Create connection
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function StepPreviewModal({ verb, prefix, chip, step, onClose }) {
   const urlMap = {
     Navigate: chip,
@@ -1121,7 +1273,7 @@ function StepPreviewModal({ verb, prefix, chip, step, onClose }) {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-8"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-8"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -1190,8 +1342,11 @@ function SectionDivider() {
   return <div className="h-px w-full bg-hairline" />
 }
 
-function SidebarSection({ icon, title, children, defaultOpen = false, bodyPadded = true }) {
+function SidebarSection({ icon, title, children, defaultOpen = false, bodyPadded = true, openSignal }) {
   const [open, setOpen] = useState(defaultOpen)
+  useEffect(() => {
+    if (openSignal !== undefined && openSignal > 0) setOpen(true)
+  }, [openSignal])
   return (
     <section>
       <button
@@ -1219,9 +1374,11 @@ export default function FlowDetailPage() {
   const [tab, setTab] = useState('overview')
   const [replayOpen, setReplayOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [failureOpenSignal, setFailureOpenSignal] = useState(0)
   const [description, setDescription] = useState(
     'Logs into the NetSuite vendor portal and downloads open invoices for accounts payable.'
   )
+  const [descEditing, setDescEditing] = useState(false)
   const tabFromHash = () => {
     const m = (window.location.hash || '').match(/^#\/browser-automation\/recording\/(steps|runs|references)/)
     return m ? m[1] : 'steps'
@@ -1240,11 +1397,12 @@ export default function FlowDetailPage() {
     if (window.location.hash !== target) window.location.hash = target
   }
   const [openRun, setOpenRun] = useState(null)
+  const [runPreview, setRunPreview] = useState(null)
   const [defaultPolicy, setDefaultPolicy] = useState({
     retry: true,
     maxRetries: 2,
     retryInterval: 1000,
-    onError: 'agent',
+    onError: 'stop',
   })
   const [dirty, setDirty] = useState(true)
   const updatePolicy = (v) => { setDefaultPolicy(v); setDirty(true) }
@@ -1260,7 +1418,7 @@ export default function FlowDetailPage() {
       <div className="flex min-w-0 flex-1 flex-col">
       {/* Topbar — mirrors src/components/Topbar.jsx styling */}
       <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-white px-3.5 py-2.5">
-        <div className="flex items-center gap-1.5 text-[13px] text-muted">
+        <div className="flex items-center gap-1.5 text-[14px] text-muted">
           <span className="opacity-60"><Folder size={16} /></span>
           <a href="#/browser-automation" className="hover:text-ink">Browser automation</a>
           <span className="text-gray-300">/</span>
@@ -1277,7 +1435,7 @@ export default function FlowDetailPage() {
               <button
                 key={id}
                 type="button"
-                onClick={() => setMainTab(id)}
+                onClick={() => { if (id === 'runs') setOpenRun(null); setMainTab(id) }}
                 className={
                   'cursor-pointer rounded-md px-3 py-1 text-[13px] font-medium transition ' +
                   (mainTab === id
@@ -1329,7 +1487,7 @@ export default function FlowDetailPage() {
             onClick={() => setReplayOpen(true)}
             className="relative flex cursor-pointer items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 font-medium text-white">
             <Play size={13} />
-            Run flow
+            Replay
             <ChevronDown size={13} sw={2.5} />
           </button>
 
@@ -1341,7 +1499,7 @@ export default function FlowDetailPage() {
 
       {/* Body */}
       <div className="flex min-h-0 flex-1">
-        <main className="canvas-dots no-scrollbar min-w-0 flex-1 overflow-y-auto">
+        <main className={`${mainTab === 'steps' ? 'canvas-dots' : 'bg-gray-50'} no-scrollbar min-w-0 flex-1 overflow-y-auto`}>
           <div className="mx-auto flex w-full max-w-[880px] flex-col gap-5 px-8 py-6">
 
             {mainTab === 'steps' && (() => {
@@ -1416,7 +1574,7 @@ export default function FlowDetailPage() {
                         boundInputType={schema.find(x => x.name === s.input)?.type}
                         defaults={defaultPolicy}
                         availableInputs={schema}
-                        onOpenSettings={() => setSettingsOpen(true)}
+                        onOpenSettings={() => { setSettingsOpen(true); setFailureOpenSignal(s => s + 1) }}
                       />
                     ))}
                     <div className="h-16" />
@@ -1502,11 +1660,19 @@ export default function FlowDetailPage() {
                               <span className={'h-1.5 w-1.5 rounded-full ' + (s.status === 'ok' ? 'bg-emerald-500' : 'bg-red-500')} />
                               <span className={'text-[12px] ' + (s.status === 'ok' ? 'text-muted' : 'text-red-700')}>{s.status === 'ok' ? 'Succeeded' : 'Failed'}</span>
                               <span className="font-mono text-[11.5px] text-muted">{s.dur}</span>
-                              <span className="pointer-events-none flex h-7 w-7 flex-none items-center justify-center overflow-hidden rounded-md border border-hairline bg-white p-0">
-                                <span className="block scale-[0.30] origin-center">
-                                  <StepThumbnail verb={verb} prefix={prefix} chip={chip} />
+                              <Tooltip label="Captured from this run">
+                                <span
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={(e) => { e.stopPropagation(); setRunPreview({ verb, prefix, chip }) }}
+                                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); e.preventDefault(); setRunPreview({ verb, prefix, chip }) } }}
+                                  className="flex h-7 w-7 flex-none cursor-pointer items-center justify-center overflow-hidden rounded-md border border-hairline bg-white p-0 hover:border-gray-300 hover:ring-2 hover:ring-gray-200 focus:outline-none"
+                                >
+                                  <span className="pointer-events-none block scale-[0.30] origin-center">
+                                    <StepThumbnail verb={verb} prefix={prefix} chip={chip} />
+                                  </span>
                                 </span>
-                              </span>
+                              </Tooltip>
                             </div>
                           </div>
                         </section>
@@ -1769,12 +1935,45 @@ export default function FlowDetailPage() {
               ))}
             </div>
             <SidebarSection icon={<IcArrow size={16} />} title="Input" defaultOpen={false}>
-              <div className="rounded-md border border-hairline bg-gray-50 px-3 py-2 font-mono text-[11.5px] text-muted">
-                {'{}'} 0 items
+              <div className="flex flex-col gap-3.5">
+                {[
+                  ['Vendor Name', 'variable', 'The vendor whose invoices are being downloaded.'],
+                  ['Invoice Date Range', 'variable', 'Date window for the invoices to fetch.'],
+                  ['Portal URL', 'variable', 'The vendor billing portal entry point.'],
+                  ['Portal Credentials', 'credential', 'Username and password used to sign into the portal.'],
+                  ['MFA Token', 'credential', 'One-time code retrieved from the authenticator.'],
+                  ['Download Folder', 'variable', 'Destination path for saved invoice PDFs.'],
+                ].map(([name, type, desc]) => (
+                  <div key={name} className="flex flex-col gap-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <div className="text-[13px] font-medium text-ink">{name}</div>
+                      <div className="text-[11.5px] text-muted">{type}</div>
+                    </div>
+                    <div className="text-[12px] leading-snug text-muted">{desc}</div>
+                  </div>
+                ))}
               </div>
             </SidebarSection>
-            <SidebarSection icon={<IcArrow size={16} />} title="Output" defaultOpen={false}>
-              <div className="text-[12px] text-muted">N/A</div>
+            <SidebarSection icon={<IcArrow size={16} />} title="Outputs" defaultOpen={false}>
+              <div className="flex flex-col gap-3.5">
+                {[
+                  ['Success', 'boolean', 'Whether the replay completed successfully.'],
+                  ['Task ID', 'string', 'The sandbox-local workflow backend task ID.'],
+                  ['Status', 'string', 'Terminal replay status.'],
+                  ['Sandbox ID', 'string', 'The browser navigation sandbox used for replay.'],
+                  ['Stream URL', 'string', 'The stream URL for observing replay in the browser navigation sandbox.'],
+                  ['Result', 'array', 'Step-by-step replay result payload.'],
+                  ['Error', 'string', 'Replay error if the task failed.'],
+                ].map(([name, type, desc]) => (
+                  <div key={name} className="flex flex-col gap-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <div className="text-[13px] font-medium text-ink">{name}</div>
+                      <div className="text-[11.5px] text-muted">{type}</div>
+                    </div>
+                    <div className="text-[12px] leading-snug text-muted">{desc}</div>
+                  </div>
+                ))}
+              </div>
             </SidebarSection>
             {openRun.st === 'fail' && (
               <SidebarSection icon={<IcShield size={16} />} title="Errors" defaultOpen={true}>
@@ -1806,12 +2005,25 @@ export default function FlowDetailPage() {
           </div>
           <div className="flex flex-1 flex-col">
           <SidebarSection icon={<IcClock size={18} />} title="Description" defaultOpen={true}>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe what this recording does…"
-              className="min-h-[72px] w-full resize-y rounded-md border border-hairline bg-white px-2.5 py-2 text-[13px] leading-[1.5] text-ink placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
-            />
+            {descEditing ? (
+              <textarea
+                autoFocus
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                onBlur={() => setDescEditing(false)}
+                placeholder="Describe what this recording does…"
+                className="min-h-[72px] w-full resize-y rounded-md border border-hairline bg-white px-2.5 py-2 text-[13px] leading-[1.5] text-ink placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+              />
+            ) : (
+              <div
+                onDoubleClick={() => setDescEditing(true)}
+                className="min-h-[72px] w-full cursor-text rounded-md bg-gray-50 px-2.5 py-2 text-[13px] leading-[1.5] text-ink hover:bg-gray-100"
+              >
+                {description || (
+                  <span className="text-gray-400">Describe what this recording does…</span>
+                )}
+              </div>
+            )}
           </SidebarSection>
 
           <SidebarSection icon={<IcClock size={18} />} title="About" defaultOpen={true}>
@@ -1831,7 +2043,7 @@ export default function FlowDetailPage() {
             </div>
           </SidebarSection>
 
-          <SidebarSection icon={<IcShield size={18} />} title="If a step fails" defaultOpen={false}>
+          <SidebarSection icon={<IcShield size={18} />} title="If a step fails" defaultOpen={false} openSignal={failureOpenSignal}>
             <div className="mb-3 text-[11.5px] text-muted">
               Default failure handling for all steps. Each step can override this.
             </div>
@@ -1863,6 +2075,14 @@ export default function FlowDetailPage() {
       </div>
       {replayOpen && (
         <ReplayModal onClose={() => setReplayOpen(false)} flowName="Download vendor invoices" />
+      )}
+      {runPreview && (
+        <StepPreviewModal
+          verb={runPreview.verb}
+          prefix={runPreview.prefix}
+          chip={runPreview.chip}
+          onClose={() => setRunPreview(null)}
+        />
       )}
     </div>
   )

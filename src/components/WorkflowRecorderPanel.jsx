@@ -38,6 +38,15 @@ function ExternalLinkIcon({ size = 12 }) {
   )
 }
 
+function SparklesIcon({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" />
+      <path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z" />
+    </svg>
+  )
+}
+
 function PencilIcon({ size = 12 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -211,7 +220,7 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
-      className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 px-4"
+      className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-sm px-4"
     >
       <div className="w-full overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
         <div className="border-b border-hairline px-5 py-3.5 text-[14px] font-semibold text-ink">
@@ -219,24 +228,6 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
         </div>
 
         <div className="max-h-[360px] overflow-y-auto px-5 pb-4 pt-4">
-          <div className="mb-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/60 p-3">
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[12.5px] font-medium text-ink">
-                Steps
-              </div>
-              <div className="text-[11.5px] text-muted">
-                {stepCount} {stepCount === 1 ? 'step' : 'steps'} captured
-              </div>
-            </div>
-            <button
-              onClick={onEditTab}
-              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11.5px] font-medium text-ink hover:bg-gray-50"
-            >
-              Edit recording
-              <span className="text-gray-500"><ExternalLink size={11} /></span>
-            </button>
-          </div>
-
           <label className="mb-1 block text-[11.5px] text-muted">
             Name <span className="text-red-500">*</span>
           </label>
@@ -285,6 +276,19 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
               </span>
             </span>
           </label>
+
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/60 p-3">
+            <div className="min-w-0 flex-1 text-[12.5px] font-medium text-ink">
+              {stepCount} {stepCount === 1 ? 'Step' : 'Steps'}
+            </div>
+            <button
+              onClick={onEditTab}
+              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11.5px] font-medium text-ink hover:bg-gray-50"
+            >
+              Review &amp; edit steps
+              <span className="text-gray-500"><ExternalLink size={11} /></span>
+            </button>
+          </div>
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50 px-5 py-3">
           <button
@@ -382,13 +386,16 @@ function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopRepl
           onClick={onEditTab}
           className="flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 text-[12.5px] font-medium text-gray-600 hover:text-ink"
         >
-          Edit recording
+          Review &amp; edit steps
           <ExternalLinkIcon size={12} />
         </button>
       ) : phase === 'recording' ? (
-        <div className="flex h-8 items-center justify-center text-[11.5px] text-muted">
-          {stepCount} {stepCount === 1 ? 'step' : 'steps'} captured
-        </div>
+        <button
+          className="flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-[12.5px] font-medium text-ink hover:bg-gray-50"
+        >
+          <SparklesIcon size={13} />
+          Extract with AI
+        </button>
       ) : phase === 'idle' ? (
         <div className="flex h-8 items-center justify-center text-[11.5px] text-muted">
           Perform actions in the browser to capture steps
@@ -537,11 +544,11 @@ export default function WorkflowRecorderPanel({
           onClick={(e) => {
             if (e.target === e.currentTarget) setConfirmEditOpen(false)
           }}
-          className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 px-4"
+          className="absolute inset-0 z-30 flex items-center justify-center bg-black/20 backdrop-blur-sm px-4"
         >
           <div className="anim-modal w-full overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
             <div className="border-b border-hairline px-5 py-3.5 text-[14px] font-semibold text-ink">
-              Edit recording in a new page?
+              Review &amp; edit steps in a new page?
             </div>
             <div className="px-5 py-4 text-[12.5px] leading-relaxed text-ink">
               You'll edit the steps on a new page. Your workflow will be saved and this panel will close.

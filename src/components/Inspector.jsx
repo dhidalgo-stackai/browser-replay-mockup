@@ -64,6 +64,7 @@ function CollapsibleSection({
 const RECORDINGS = [
   {
     name: 'Download vendor invoices',
+    site: 'netsuite.com',
     inputs: [
       { label: 'Portal email', value: 'ap-bot@acme.com' },
       { label: 'Portal password', value: '••••••••' },
@@ -72,6 +73,7 @@ const RECORDINGS = [
   },
   {
     name: 'Extract Salesforce lead list',
+    site: 'salesforce.com',
     inputs: [
       { label: 'Report name', value: 'Weekly qualified leads' },
       { label: 'Date range', value: 'Last 7 days' },
@@ -79,12 +81,36 @@ const RECORDINGS = [
   },
 ]
 
+function RecordingLogo({ site, name, size = 16 }) {
+  const [failed, setFailed] = useState(false)
+  if (!site || failed) {
+    return (
+      <span className="text-brand">
+        <Video size={13} />
+      </span>
+    )
+  }
+  return (
+    <img
+      src={`https://icons.duckduckgo.com/ip3/${site}.ico`}
+      onError={() => setFailed(true)}
+      alt=""
+      style={{ width: size, height: size }}
+      className="flex-shrink-0 rounded-[3px] object-contain"
+    />
+  )
+}
+
 export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSelectRecording, onClearRecording, extraRecordings = [] }) {
   const allRecordings = [
     ...extraRecordings,
     ...RECORDINGS.filter((r) => !extraRecordings.some((e) => e.name === r.name)),
   ]
   const [mode, setMode] = useState('ai')
+  const [descEditing, setDescEditing] = useState(false)
+  const [description, setDescription] = useState(
+    'Replay a saved browser navigation recording from the shared browser navigation sandbox'
+  )
   const panelRef = useRef(null)
 
   // Close the panel when clicking anywhere outside it — but ignore clicks on
@@ -134,9 +160,23 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
       </div>
 
       {/* Description */}
-      <div className="border-b border-gray-100 px-4 pb-3.5 pt-2.5 text-[12.5px] leading-[1.5] text-muted">
-        Replay a saved browser navigation recording from the shared browser
-        navigation sandbox
+      <div className="border-b border-gray-100 px-4 pb-3.5 pt-2.5">
+        {descEditing ? (
+          <textarea
+            autoFocus
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            onBlur={() => setDescEditing(false)}
+            className="min-h-[52px] w-full resize-y rounded-md border border-hairline bg-white px-2 py-1.5 text-[12.5px] leading-[1.5] text-ink focus:border-gray-400 focus:outline-none"
+          />
+        ) : (
+          <div
+            onDoubleClick={() => setDescEditing(true)}
+            className="cursor-text rounded-md bg-gray-50 px-2 py-1.5 text-[12.5px] leading-[1.5] text-muted hover:bg-gray-100"
+          >
+            {description}
+          </div>
+        )}
       </div>
 
       {/* Provider + Action */}
@@ -451,8 +491,9 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
             onClick={() => setOpen((o) => !o)}
             className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 hover:border-gray-300"
           >
-            <div className={'flex-1 text-[13px] ' + (savedRecording ? 'text-ink' : 'text-gray-400')}>
-              {savedRecording || 'Select...'}
+            <div className={'flex flex-1 items-center gap-2 text-[13px] ' + (savedRecording ? 'text-ink' : 'text-gray-400')}>
+              {selected && <RecordingLogo site={selected.site} name={selected.name} />}
+              <span className="truncate">{savedRecording || 'Select...'}</span>
             </div>
             <div className="text-gray-400">
               <ChevronDown size={14} />
@@ -477,9 +518,7 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
                       (isSel ? 'bg-gray-50 text-ink' : 'text-ink')
                     }
                   >
-                    <span className="text-brand">
-                      <Video size={13} />
-                    </span>
+                    <RecordingLogo site={r.site} name={r.name} />
                     <span className="flex-1 truncate">{r.name}</span>
                     {isSel && <span className="text-[11.5px] text-muted">Selected</span>}
                   </div>
