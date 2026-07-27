@@ -66,9 +66,9 @@ const RECORDINGS = [
     name: 'Download vendor invoices',
     site: 'netsuite.com',
     inputs: [
-      { label: 'Portal email', value: 'ap-bot@acme.com' },
-      { label: 'Portal password', value: '••••••••' },
+      { label: 'Vendor name', value: 'Acme Supplies' },
       { label: 'Invoice status filter', value: 'open' },
+      { label: 'Date range', value: 'Last 30 days' },
     ],
   },
   {
@@ -551,6 +551,7 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
         </div>
       )}
 
+      {!selected && (
       <div className="flex gap-2.5 rounded-[10px] border border-[#dbe6fe] bg-[#eff5ff] px-3 py-3 text-[12.5px] leading-[1.5] text-[#1e40af]">
         <span className="mt-px flex-shrink-0 text-blue-500">
           <InfoCircle size={16} />
@@ -563,10 +564,13 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
           </a>
         </span>
       </div>
+      )}
 
+      {!selected && (
       <div className="mt-3 text-[12.5px] leading-[1.5] text-muted">
         {recordings.length} saved {recordings.length === 1 ? 'recording' : 'recordings'} available in the shared browser navigation sandbox.
       </div>
+      )}
     </>
   )
 }

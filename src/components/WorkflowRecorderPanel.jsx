@@ -209,11 +209,12 @@ function extractInputsFromSteps(steps) {
 }
 
 function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
-  const [name, setName] = useState('Google Search — Stack AI')
+  const [name, setName] = useState('Google Search')
   const [description, setDescription] = useState(
     'Navigates to Google and searches for "stack ai".',
   )
   const [download, setDownload] = useState(false)
+  const [saveCreds, setSaveCreds] = useState(true)
 
   return (
     <div
@@ -227,9 +228,10 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
           Name your recording
         </div>
 
-        <div className="max-h-[360px] overflow-y-auto px-5 pb-4 pt-4">
-          <label className="mb-1 block text-[11.5px] text-muted">
-            Name <span className="text-red-500">*</span>
+        <div className="px-5 pb-4 pt-4">
+          <label className="mb-1 flex items-center justify-between text-[11.5px] text-muted">
+            <span>Name <span className="text-red-500">*</span></span>
+            <span className="inline-flex items-center gap-1 text-[10.5px] text-gray-400"><SparklesIcon size={10} />Auto-generated with AI</span>
           </label>
           <input
             value={name}
@@ -238,8 +240,9 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
             className="mb-2.5 w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12.5px] text-ink outline-none placeholder:text-gray-400 focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
           />
 
-          <label className="mb-1 block text-[11.5px] text-muted">
-            Description <span className="text-gray-400">(optional)</span>
+          <label className="mb-1 flex items-center justify-between text-[11.5px] text-muted">
+            <span>Description <span className="text-gray-400">(optional)</span></span>
+            <span className="inline-flex items-center gap-1 text-[10.5px] text-gray-400"><SparklesIcon size={10} />Auto-generated with AI</span>
           </label>
           <textarea
             value={description}
@@ -257,7 +260,7 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
               className={
                 'flex h-[14px] w-[14px] flex-shrink-0 items-center justify-center rounded-[3px] border ' +
                 (download
-                  ? 'border-brand bg-brand text-white'
+                  ? 'border-ink bg-ink text-white'
                   : 'border-gray-300 bg-white text-transparent')
               }
             >
@@ -271,8 +274,36 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
               >
                 i
               </span>
-              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-[11px] font-normal text-white shadow-lg group-hover:block">
+              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-normal text-ink shadow-lg group-hover:block">
                 Saves a .json file of this recording to your device
+              </span>
+            </span>
+          </label>
+
+          <label
+            onClick={() => setSaveCreds((d) => !d)}
+            className="mt-2 flex cursor-pointer items-center gap-2 text-[12px] text-muted"
+          >
+            <span
+              className={
+                'flex h-[14px] w-[14px] flex-shrink-0 items-center justify-center rounded-[3px] border ' +
+                (saveCreds
+                  ? 'border-ink bg-ink text-white'
+                  : 'border-gray-300 bg-white text-transparent')
+              }
+            >
+              <CheckIcon size={9} />
+            </span>
+            Save credentials to Credentials page
+            <span className="group relative inline-flex items-center">
+              <span
+                className="flex h-3.5 w-3.5 cursor-help items-center justify-center rounded-full border border-gray-300 text-[9px] font-semibold text-gray-400"
+                aria-label="What does saving credentials mean?"
+              >
+                i
+              </span>
+              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-normal text-ink shadow-lg group-hover:block">
+                Stores the username and password securely for reuse across flows
               </span>
             </span>
           </label>
@@ -298,7 +329,7 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
             Cancel
           </button>
           <button
-            onClick={() => onSave({ name, description, download })}
+            onClick={() => onSave({ name, description, download, saveCreds })}
             disabled={!name.trim()}
             className="cursor-pointer rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -564,7 +595,7 @@ export default function WorkflowRecorderPanel({
                 onClick={doOpenEditTab}
                 className="cursor-pointer rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-medium text-white hover:opacity-90"
               >
-                Accept
+                Review and Edit steps
               </button>
             </div>
           </div>

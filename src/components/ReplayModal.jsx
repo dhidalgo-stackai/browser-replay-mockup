@@ -19,6 +19,11 @@ import FakeSite from './FakeSite.jsx'
 const STEPS = [
   'Navigate to https://www.google.com/search?q=contact+form',
   'Click result "Contact us — Example Forms"',
+  'Click "Username" field',
+  'Type "ada.lovelace" into "Username"',
+  'Click "Password" field',
+  'Type "••••••••" into "Password"',
+  'Click "Sign in"',
   'Click "First name" field',
   'Type "Ada" into "First name"',
   'Click "Last name" field',

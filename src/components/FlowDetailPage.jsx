@@ -1505,6 +1505,11 @@ export default function FlowDetailPage() {
               const stepDefs = [
                 { text: 'Navigate to https://www.google.com/search?q=contact+form' },
                 { text: 'Click result "Contact us — Example Forms"' },
+                { text: 'Click "Username" field' },
+                { text: 'Type "ada.lovelace" into "Username"', input: 'username' },
+                { text: 'Click "Password" field' },
+                { text: 'Type "••••••••" into "Password"', input: 'password' },
+                { text: 'Click "Sign in"' },
                 { text: 'Click "First name" field' },
                 { text: 'Type "Ada" into "First name"',       input: 'first_name' },
                 { text: 'Click "Last name" field' },
