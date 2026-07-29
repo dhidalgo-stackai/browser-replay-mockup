@@ -159,28 +159,25 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
         </div>
       </div>
 
-      {/* Description */}
-      <div className="border-b border-gray-100 px-4 pb-3.5 pt-2.5">
+      {/* Description + Provider + Action */}
+      <div className="border-b border-gray-100 bg-gray-50 px-4 py-3">
         {descEditing ? (
           <textarea
             autoFocus
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => setDescEditing(false)}
-            className="min-h-[52px] w-full resize-y rounded-md border border-hairline bg-white px-2 py-1.5 text-[12.5px] leading-[1.5] text-ink focus:border-gray-400 focus:outline-none"
+            className="mb-3 min-h-[52px] w-full resize-y rounded-md border border-hairline bg-white px-2 py-1.5 text-[12.5px] leading-[1.5] text-ink focus:border-gray-400 focus:outline-none"
           />
         ) : (
           <div
             onDoubleClick={() => setDescEditing(true)}
-            className="cursor-text rounded-md bg-gray-50 px-2 py-1.5 text-[12.5px] leading-[1.5] text-muted hover:bg-gray-100"
+            className="mb-3 cursor-text text-[12.5px] leading-[1.5] text-muted"
           >
             {description}
           </div>
         )}
-      </div>
 
-      {/* Provider + Action */}
-      <div className="border-b border-gray-100 bg-gray-50 px-4 py-3">
         <Field label="Provider" bare>
           <Select
             icon={<Monitor size={14} />}
