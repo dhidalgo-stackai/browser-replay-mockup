@@ -195,7 +195,13 @@ export default function LeftRail({ expanded = false, showMore = true }) {
             }}
           />
           <Row isExpanded={isExpanded} icon={<Database size={18} />} label="Knowledge bases" />
-          <Row isExpanded={isExpanded} icon={<ShareNodes size={18} />} label="Connections" />
+          <Row
+            isExpanded={isExpanded}
+            icon={<ShareNodes size={18} />}
+            label="Connections"
+            active={route.startsWith('/connections')}
+            onClick={() => { window.location.hash = '/connections' }}
+          />
           <Row isExpanded={isExpanded} icon={<Sparkle size={18} />} label="Skills" />
           <Row isExpanded={isExpanded} icon={<BarChart size={18} />} label="Analytics" />
           <Row isExpanded={isExpanded} icon={<Globe size={18} />} label="Published agents" />

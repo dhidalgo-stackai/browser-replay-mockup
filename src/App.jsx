@@ -7,6 +7,7 @@ import SandboxModal from './components/SandboxModal.jsx'
 import FlowDetailPage from './components/FlowDetailPage.jsx'
 import AgentFlowDetailPage from './components/AgentFlowDetailPage.jsx'
 import BrowserAutomationPage from './components/BrowserAutomationPage.jsx'
+import ConnectionsPage from './components/ConnectionsPage.jsx'
 
 function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash || '')
@@ -20,6 +21,7 @@ function useHashRoute() {
 
 export default function App() {
   const [inspectorOpen, setInspectorOpen] = useState(true)
+  const [selectedNode, setSelectedNode] = useState('replay')
   const [savedRecording, setSavedRecording] = useState(null)
   const [extraRecordings, setExtraRecordings] = useState([])
   const route = useHashRoute()
@@ -31,6 +33,7 @@ export default function App() {
     window.dispatchEvent(new HashChangeEvent('hashchange'))
   }
 
+  if (route.startsWith('/connections')) return <ConnectionsPage />
   if (route.startsWith('/browser-automation/recording')) return <FlowDetailPage />
   if (route.startsWith('/browser-automation/agent')) return <AgentFlowDetailPage />
   if (route.startsWith('/browser-automation')) return <BrowserAutomationPage />
@@ -43,7 +46,7 @@ export default function App() {
         <Topbar />
 
         <div className="relative flex min-h-0 flex-1">
-          <Canvas onNodeClick={() => setInspectorOpen(true)} />
+          <Canvas selectedNode={selectedNode} onNodeClick={(id) => { setSelectedNode(id); setInspectorOpen(true) }} />
 
           {inspectorOpen && (
             <Inspector
@@ -53,6 +56,8 @@ export default function App() {
               onSelectRecording={setSavedRecording}
               onClearRecording={() => setSavedRecording(null)}
               extraRecordings={extraRecordings}
+              replayOnly={selectedNode === 'replay'}
+              title={selectedNode === 'replay' ? 'Browser Navigation Replay' : 'Browser Navigation'}
             />
           )}
         </div>

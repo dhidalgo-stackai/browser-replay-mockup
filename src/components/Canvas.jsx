@@ -27,7 +27,7 @@ function Port({ side }) {
   )
 }
 
-function WorkflowNode({ icon, title, desc, meta, selected, style, onClick }) {
+function WorkflowNode({ icon, iconTone, title, desc, meta, selected, style, onClick }) {
   return (
     <div
       style={style}
@@ -42,7 +42,10 @@ function WorkflowNode({ icon, title, desc, meta, selected, style, onClick }) {
       <Port side="left" />
       <Port side="right" />
       <div className="mb-2 flex items-center gap-2">
-        <div className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-[7px] bg-gray-100 text-gray-600">
+        <div className={
+          'flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-[7px] ' +
+          (iconTone === 'orange' ? 'bg-orange-50 text-orange-500 ring-1 ring-inset ring-orange-200' : 'bg-gray-100 text-gray-600')
+        }>
           {icon}
         </div>
         <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[13.5px] font-semibold text-ink">
@@ -80,7 +83,7 @@ function Divider() {
   return <div className="mx-1 h-[18px] w-px bg-gray-200" />
 }
 
-export default function Canvas({ onNodeClick }) {
+export default function Canvas({ onNodeClick, selectedNode }) {
   return (
     <div className="canvas-dots relative flex-1 overflow-hidden">
       <div className="absolute left-[100px] top-8 flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
@@ -91,6 +94,12 @@ export default function Canvas({ onNodeClick }) {
       <svg className="pointer-events-none absolute inset-0">
         <path
           d="M 360 300 C 415 300, 415 340, 470 340"
+          stroke="#c9ccd1"
+          strokeWidth="1.5"
+          fill="none"
+        />
+        <path
+          d="M 730 340 C 775 340, 775 340, 820 340"
           stroke="#c9ccd1"
           strokeWidth="1.5"
           fill="none"
@@ -107,10 +116,22 @@ export default function Canvas({ onNodeClick }) {
 
       <WorkflowNode
         style={{ top: 260, left: 470 }}
-        selected
-        onClick={onNodeClick}
+        selected={selectedNode === 'navigation'}
+        onClick={() => onNodeClick?.('navigation')}
         icon={<Monitor size={16} />}
+        iconTone="orange"
         title="Browser Navigation"
+        desc="Replay a saved browser navigation recording from the shared browser..."
+        meta={['0.00 sec', 'v1.0.0']}
+      />
+
+      <WorkflowNode
+        style={{ top: 260, left: 820 }}
+        selected={selectedNode === 'replay'}
+        onClick={() => onNodeClick?.('replay')}
+        icon={<Monitor size={16} />}
+        iconTone="orange"
+        title="Browser Navigation Replay"
         desc="Replay a saved browser navigation recording from the shared browser..."
         meta={['0.00 sec', 'v1.0.0']}
       />

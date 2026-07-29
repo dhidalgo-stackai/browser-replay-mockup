@@ -21,6 +21,7 @@ import {
   Wrench,
   Cursor,
   Sparkle,
+  Search,
 } from './icons.jsx'
 
 function HeaderIconBtn({ children, onClick }) {
@@ -39,15 +40,19 @@ function CollapsibleSection({
   label,
   badge,
   defaultOpen = false,
-  bodyClass = 'border-b border-gray-100 px-4 pb-4 pt-1 text-[12.5px] leading-[1.5] text-muted',
+  openWhen,
+  bodyClass = 'px-4 pb-4 pt-1 text-[12.5px] leading-[1.5] text-muted',
   children,
 }) {
   const [open, setOpen] = useState(defaultOpen)
+  useEffect(() => {
+    if (openWhen) setOpen(true)
+  }, [openWhen])
   return (
     <div>
       <div
         onClick={() => setOpen((o) => !o)}
-        className="flex cursor-pointer select-none items-center gap-2.5 border-b border-gray-100 px-4 py-3.5 text-[13px] text-ink"
+        className="flex cursor-pointer select-none items-center gap-2.5 border-t border-gray-100 px-4 py-3.5 text-[13px] text-ink"
       >
         <span className="flex items-center text-gray-600">{icon}</span>
         {label}
@@ -56,7 +61,14 @@ function CollapsibleSection({
           {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </span>
       </div>
-      {open && <div className={'anim-fade ' + bodyClass}>{children}</div>}
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+      >
+        <div className={open ? 'min-h-0' : 'min-h-0 overflow-hidden'}>
+          <div className={bodyClass}>{children}</div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -101,12 +113,12 @@ function RecordingLogo({ site, name, size = 16 }) {
   )
 }
 
-export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSelectRecording, onClearRecording, extraRecordings = [] }) {
+export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSelectRecording, onClearRecording, extraRecordings = [], replayOnly = false, title = 'Browser Navigation' }) {
   const allRecordings = [
     ...extraRecordings,
     ...RECORDINGS.filter((r) => !extraRecordings.some((e) => e.name === r.name)),
   ]
-  const [mode, setMode] = useState('ai')
+  const [mode, setMode] = useState(replayOnly ? 'manual' : 'ai')
   const [descEditing, setDescEditing] = useState(false)
   const [description, setDescription] = useState(
     'Replay a saved browser navigation recording from the shared browser navigation sandbox'
@@ -134,11 +146,11 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
     >
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-gray-100 px-4 pb-2.5 pt-3.5">
-        <div className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px] bg-gray-100 text-gray-600">
+        <div className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px] bg-orange-50 text-orange-500 ring-1 ring-inset ring-orange-200">
           <Monitor size={16} />
         </div>
         <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold">
-          Browser Navigation
+          {title}
         </div>
         <div className="rounded-md bg-gray-100 px-2 py-[3px] text-[11.5px] font-medium text-gray-600">
           action-3
@@ -192,23 +204,111 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
                 <Video size={14} />
               </span>
             }
-            value="Browser Navigation"
+            value={replayOnly ? 'Browser Navigation Replay' : 'Browser Navigation'}
           />
         </Field>
       </div>
+
+      <CollapsibleSection icon={<Gear size={14} />} label="Settings" defaultOpen>
+        {!replayOnly && (
+          <>
+            <div className="mb-2 flex items-center gap-1.5">
+              <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
+                Run mode
+              </span>
+              <span
+                className="cursor-help text-gray-400 hover:text-gray-600"
+                title="AI Agent: Claude drives the browser autonomously from a natural-language goal.&#10;Replay: Plays back a saved recording step by step."
+              >
+                <InfoCircle size={13} />
+              </span>
+            </div>
+            <div className="mb-3.5 flex flex-col items-start gap-1.5">
+              <div className="inline-flex items-center gap-0.5 rounded-[7px] bg-gray-100 p-[2px]">
+                {[
+                  ['ai', 'AI Agent'],
+                  ['manual', 'Replay recording'],
+                ].map(([key, label]) => (
+                  <div
+                    key={key}
+                    onClick={() => setMode(key)}
+                    className={
+                      'cursor-pointer whitespace-nowrap rounded-[5px] px-2.5 py-[3px] text-[12.5px] ' +
+                      (mode === key
+                        ? 'bg-white text-ink shadow-[0_1px_2px_rgba(0,0,0,0.08)]'
+                        : 'text-[#5f6368] hover:text-gray-700')
+                    }
+                  >
+                    {label}
+                  </div>
+                ))}
+              </div>
+              <div className="text-[12px] text-gray-500">
+                {mode === 'ai'
+                  ? 'An AI agent model drives the browser from a natural-language goal.'
+                  : 'Plays back a saved recording step by step.'}
+              </div>
+            </div>
+          </>
+        )}
+        {replayOnly && (
+          <div className="mb-3.5">
+            <div className="mb-2 flex items-center gap-1.5">
+              <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
+                Saved Recording
+              </span>
+              <span className="font-bold text-red-500">*</span>
+              <span
+                className="cursor-help text-gray-400 hover:text-gray-600"
+                title="Record and replay browser workflows. Save a recording to make it appear in the dropdown."
+              >
+                <InfoCircle size={13} />
+              </span>
+            </div>
+            <SavedRecordingSelector
+              onOpenSandbox={onOpenSandbox}
+              savedRecording={savedRecording}
+              onSelectRecording={onSelectRecording}
+              onClearRecording={onClearRecording}
+              recordings={allRecordings}
+              showLabel={false}
+            />
+          </div>
+        )}
+        {(!replayOnly || savedRecording) && (
+          <>
+            <div className="mb-2 text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
+              Connection
+            </div>
+            <ConnectionSelect />
+            <div className="mt-2 text-[12px] leading-[1.5] text-muted">
+              <a className="underline decoration-gray-300 underline-offset-[3px]" href="#">
+                Your credentials are encrypted and can be removed at any time
+              </a>
+              . You can manage all your connections{' '}
+              <a className="underline decoration-gray-300 underline-offset-[3px]" href="#">
+                here
+              </a>
+              .
+            </div>
+          </>
+        )}
+      </CollapsibleSection>
 
       {/* Inputs */}
       <CollapsibleSection
         icon={<DownloadArrow size={15} />}
         label="Inputs"
-        defaultOpen
+        openWhen={savedRecording}
         badge={
-          <span className="flex items-center gap-1.5 rounded-[7px] bg-[#fef4e5] px-[9px] py-[3px] text-[11.5px] font-semibold text-[#b45309]">
-            <AlertTriangle size={12} />
-            Has required fields
-          </span>
+          savedRecording ? (
+            <span className="flex items-center gap-1.5 rounded-[7px] bg-[#fef4e5] px-[9px] py-[3px] text-[11.5px] font-semibold text-[#b45309]">
+              <AlertTriangle size={12} />
+              Has required fields
+            </span>
+          ) : null
         }
-        bodyClass="border-b border-gray-100 px-4 pb-4 pt-3"
+        bodyClass="px-4 pb-4 pt-3"
       >
         <div className="mb-3.5 inline-flex gap-0.5 rounded-lg bg-gray-100 p-[3px]">
           <ViewToggle active title="Tree view">
@@ -220,44 +320,6 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
         </div>
 
         <div className="ml-1 border-l border-hairline pl-5">
-          <div className="mb-2 flex items-center gap-1.5">
-            <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-              Run mode
-            </span>
-            <span
-              className="cursor-help text-gray-400 hover:text-gray-600"
-              title="AI Agent: Claude drives the browser autonomously from a natural-language goal.&#10;Replay: Plays back a saved recording step by step."
-            >
-              <InfoCircle size={13} />
-            </span>
-          </div>
-          <div className="mb-3.5 flex flex-col items-start gap-1.5">
-            <div className="inline-flex items-center gap-0.5 rounded-[7px] bg-gray-100 p-[2px]">
-              {[
-                ['ai', 'AI Agent'],
-                ['manual', 'Replay recording'],
-              ].map(([key, label]) => (
-                <div
-                  key={key}
-                  onClick={() => setMode(key)}
-                  className={
-                    'cursor-pointer whitespace-nowrap rounded-[5px] px-2.5 py-[3px] text-[12.5px] ' +
-                    (mode === key
-                      ? 'bg-white text-ink shadow-[0_1px_2px_rgba(0,0,0,0.08)]'
-                      : 'text-[#5f6368] hover:text-gray-700')
-                  }
-                >
-                  {label}
-                </div>
-              ))}
-            </div>
-            <div className="text-[12px] text-gray-500">
-              {mode === 'ai'
-                ? 'An AI agent model drives the browser from a natural-language goal.'
-                : 'Plays back a saved recording step by step.'}
-            </div>
-          </div>
-
           {mode === 'ai' ? (
             <AiInputs />
           ) : (
@@ -267,6 +329,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
               onSelectRecording={onSelectRecording}
               onClearRecording={onClearRecording}
               recordings={allRecordings}
+              hideSelector={replayOnly}
             />
           )}
         </div>
@@ -317,6 +380,96 @@ function InputRow({ label, type = 'string', required = false, expanded = false, 
 
 const fieldInputClass =
   'w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none'
+
+const CONNECTIONS = [
+  { id: 'david-1', name: "David's Google Drive connection", user: 'David Hidalgo', when: '1 second ago' },
+  { id: 'marta', name: "Marta's Gdrive connection", user: 'Marta Llopis', when: '12 hours ago' },
+  { id: 'jenny', name: 'Google Drive', user: 'Jenny Liang', when: '17 hours ago' },
+  { id: 'david-2', name: "David's Google Drive connection", user: 'David Hidalgo', when: '17 hours ago' },
+]
+
+function ConnAvatar({ name }) {
+  const initial = (name || '?')[0].toUpperCase()
+  return (
+    <span className="flex h-[18px] w-[18px] flex-none items-center justify-center rounded-full border border-gray-200 bg-white text-[10px] font-medium text-ink">
+      {initial}
+    </span>
+  )
+}
+
+function ConnectionSelect() {
+  const [open, setOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState('david-1')
+  const [query, setQuery] = useState('')
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+  const selected = CONNECTIONS.find((c) => c.id === selectedId)
+  const filtered = CONNECTIONS.filter((c) =>
+    !query || c.name.toLowerCase().includes(query.toLowerCase()) || c.user.toLowerCase().includes(query.toLowerCase()),
+  )
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={fieldInputClass + ' flex items-center justify-between text-left'}
+      >
+        <span className="truncate">{selected?.name}</span>
+        <ChevronDown size={14} />
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 rounded-lg border border-gray-200 bg-white shadow-lg">
+          <div className="flex items-center gap-2 border-b border-gray-100 px-2.5 py-2">
+            <Search size={14} />
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search connections..."
+              className="w-full bg-transparent text-[13px] text-ink placeholder:text-gray-400 focus:outline-none"
+            />
+          </div>
+          <div className="border-b border-gray-100 py-1">
+            <button className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50">
+              <Plus size={14} /> New connection
+            </button>
+            <button className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50">
+              <ExternalLink size={14} /> Manage connections
+            </button>
+          </div>
+          <div className="max-h-[240px] overflow-y-auto py-1">
+            {filtered.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => { setSelectedId(c.id); setOpen(false) }}
+                className={
+                  'flex w-full flex-col gap-0.5 px-2.5 py-1.5 text-left hover:bg-gray-50 ' +
+                  (c.id === selectedId ? 'bg-gray-100' : '')
+                }
+              >
+                <div className="flex items-center gap-1.5 text-[13px] text-ink">
+                  <span className="truncate">{c.name}</span>
+                  <InfoCircle size={12} />
+                </div>
+                <div className="flex items-center gap-1.5 text-[11.5px] text-gray-500">
+                  <span>Created by</span>
+                  <ConnAvatar name={c.user} />
+                  <span>{c.user}</span>
+                  <span>{c.when}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function SaveRecordingToggle() {
   const [on, setOn] = useState(false)
@@ -508,11 +661,10 @@ function HardcodedInputField({ label, initial }) {
   )
 }
 
-function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClearRecording, recordings = RECORDINGS }) {
+function SavedRecordingSelector({ onOpenSandbox, savedRecording, onSelectRecording, onClearRecording, recordings, showLabel = true }) {
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
   const triggerRef = useRef(null)
-
   useEffect(() => {
     if (!open) return
     const handle = (e) => {
@@ -523,23 +675,18 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
   }, [open])
-
   const selected = recordings.find((r) => r.name === savedRecording)
-
   return (
     <>
-      <div className="mb-2 flex items-center gap-1.5">
-        <span className="flex cursor-pointer text-muted">
-          <ChevronDown size={14} />
-        </span>
-        <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-          Saved Recording
-        </span>
-        <span className="font-bold text-red-500">*</span>
-        <span className="ml-auto font-mono text-[12.5px] text-gray-400">string</span>
-      </div>
-
-      <div className="mb-3 flex items-center gap-2">
+      {showLabel && (
+        <div className="mb-2 flex items-center gap-1.5">
+          <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
+            Saved Recording
+          </span>
+          <span className="font-bold text-red-500">*</span>
+        </div>
+      )}
+      <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <div
             ref={triggerRef}
@@ -564,10 +711,7 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
                 return (
                   <div
                     key={r.name}
-                    onClick={() => {
-                      onSelectRecording(r.name)
-                      setOpen(false)
-                    }}
+                    onClick={() => { onSelectRecording(r.name); setOpen(false) }}
                     className={
                       'flex cursor-pointer items-center gap-2 px-2.5 py-2 text-[13px] hover:bg-gray-50 ' +
                       (isSel ? 'bg-gray-50 text-ink' : 'text-ink')
@@ -597,6 +741,39 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
           <X size={14} />
         </div>
       </div>
+    </>
+  )
+}
+
+function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClearRecording, recordings = RECORDINGS, hideSelector = false }) {
+  const selected = recordings.find((r) => r.name === savedRecording)
+
+  return (
+    <>
+      {!hideSelector && (
+        <>
+          <div className="mb-2 flex items-center gap-1.5">
+            <span className="flex cursor-pointer text-muted">
+              <ChevronDown size={14} />
+            </span>
+            <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
+              Saved Recording
+            </span>
+            <span className="font-bold text-red-500">*</span>
+            <span className="ml-auto font-mono text-[12.5px] text-gray-400">string</span>
+          </div>
+          <div className="mb-3">
+            <SavedRecordingSelector
+              onOpenSandbox={onOpenSandbox}
+              savedRecording={savedRecording}
+              onSelectRecording={onSelectRecording}
+              onClearRecording={onClearRecording}
+              recordings={recordings}
+              showLabel={false}
+            />
+          </div>
+        </>
+      )}
 
       {selected && (
         <div className="mb-3.5 flex flex-col gap-4">
@@ -606,26 +783,6 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
         </div>
       )}
 
-      {!selected && (
-      <div className="flex gap-2.5 rounded-[10px] border border-[#dbe6fe] bg-[#eff5ff] px-3 py-3 text-[12.5px] leading-[1.5] text-[#1e40af]">
-        <span className="mt-px flex-shrink-0 text-blue-500">
-          <InfoCircle size={16} />
-        </span>
-        <span>
-          Record and replay browser workflows. Save a recording to make it
-          appear in the dropdown.{' '}
-          <a href="#" className="text-[#1d4ed8] underline">
-            Watch demo
-          </a>
-        </span>
-      </div>
-      )}
-
-      {!selected && (
-      <div className="mt-3 text-[12.5px] leading-[1.5] text-muted">
-        {recordings.length} saved {recordings.length === 1 ? 'recording' : 'recordings'} available in the shared browser navigation sandbox.
-      </div>
-      )}
     </>
   )
 }
