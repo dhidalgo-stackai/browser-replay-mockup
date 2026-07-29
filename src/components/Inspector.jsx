@@ -826,12 +826,13 @@ function HardcodedInputField({ label, initial }) {
           This value will be determined by AI
         </div>
       ) : (
-      <div ref={inputRef} className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 focus-within:border-gray-400">
-        <input
+      <div ref={inputRef} className="flex items-start gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1 focus-within:border-gray-400">
+        <textarea
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => setPopoverOpen(true)}
-          className="h-7 flex-1 min-w-0 bg-transparent font-mono text-[12px] text-ink outline-none placeholder:text-gray-400"
+          rows={1}
+          className="min-h-[20px] flex-1 min-w-0 resize-y bg-transparent font-mono text-[12px] text-ink outline-none placeholder:text-gray-400"
           placeholder="Start typing to add values..."
         />
       </div>

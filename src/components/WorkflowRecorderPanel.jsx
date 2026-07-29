@@ -223,7 +223,7 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
-      className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-sm px-4"
+      className="absolute inset-0 z-20 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4"
     >
       <div className="w-full overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
         <div className="border-b border-hairline px-5 py-3.5 text-[14px] font-semibold text-ink">
@@ -419,7 +419,7 @@ function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopRepl
           onClick={onEditTab}
           className="flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 text-[12.5px] font-medium text-gray-600 hover:text-ink"
         >
-          Review &amp; edit steps
+          Edit steps, inputs &amp; connections
           <ExternalLinkIcon size={12} />
         </button>
       ) : phase === 'recording' ? (
@@ -581,10 +581,10 @@ export default function WorkflowRecorderPanel({
         >
           <div className="anim-modal w-full overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
             <div className="border-b border-hairline px-5 py-3.5 text-[14px] font-semibold text-ink">
-              Review &amp; edit steps in a new page?
+              Open the full workflow editor?
             </div>
             <div className="px-5 py-4 text-[12.5px] leading-relaxed text-ink">
-              You'll edit the steps on a new page. Your workflow will be saved and this panel will close.
+              We'll save your recording and open it in the full editor, where you can rename and reorder steps, turn recorded values into reusable inputs, attach connections, and add recovery instructions for the agent. This panel will close.
             </div>
             <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50 px-4 py-3">
               <button
@@ -597,7 +597,7 @@ export default function WorkflowRecorderPanel({
                 onClick={doOpenEditTab}
                 className="cursor-pointer rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-medium text-white hover:opacity-90"
               >
-                Review and Edit steps
+                Edit steps, inputs &amp; connections
               </button>
             </div>
           </div>

@@ -662,6 +662,25 @@ function NodeRefPreview() {
   )
 }
 
+function FixedValuePreview() {
+  return (
+    <div className="overflow-hidden rounded-md border border-hairline bg-white">
+      <div className="border-b border-hairline bg-gray-50 px-2 py-1">
+        <span className="font-mono text-[8px] text-muted">first_name</span>
+      </div>
+      <div className="flex flex-col gap-1 p-1.5">
+        <div className="flex h-4 items-center rounded-sm border border-hairline bg-white px-1.5 font-mono text-[8px] text-ink">
+          Ada
+        </div>
+        <div className="flex items-center gap-1 px-0.5">
+          <span className="flex h-2 w-2 items-center justify-center rounded-full bg-emerald-500 text-white text-[6px]">✓</span>
+          <span className="text-[7.5px] text-muted">Same on every run</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function RowKebabMenu({ items }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -793,7 +812,7 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
   }, [menuOpen])
   const sourceLabels = {
     fixed: 'Fixed value',
-    dynamic: 'Dynamic',
+    dynamic: 'From workflow',
     credential: 'Credential',
   }
   const [credentialList, setCredentialList] = useState([
@@ -850,8 +869,17 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
               className="anim-pop absolute left-0 top-[calc(100%+4px)] z-10 w-[220px] rounded-md border border-hairline bg-white shadow-[0_6px_20px_rgba(0,0,0,0.08)]"
             >
               {[
-                ['fixed', 'Fixed value', <span className="text-[11.5px] font-normal text-muted">Same value used every run.</span>],
-                ['dynamic', 'Dynamic', (
+                ['fixed', 'Fixed value', (
+                  <div className="flex flex-col">
+                    <div className="border-b border-hairline bg-gray-50 p-2">
+                      <FixedValuePreview />
+                    </div>
+                    <div className="px-2.5 py-2 text-[11.5px] font-normal text-muted">
+                      Hardcoded here in the recording. The same value is used every time it runs.
+                    </div>
+                  </div>
+                )],
+                ['dynamic', 'From workflow', (
                   <div className="flex flex-col">
                     <div className="border-b border-hairline bg-gray-50 p-2">
                       <NodeRefPreview />
@@ -862,7 +890,7 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
                   </div>
                 )],
               ].map(([k, name, tip]) => (
-                <Tooltip key={k} label={tip} side="right" width={k === 'dynamic' ? 280 : 200} padded={k !== 'dynamic'} className="block w-full">
+                <Tooltip key={k} label={tip} side="left" width={280} padded={false} className="block w-full">
                   <button
                     type="button"
                     onClick={() => { setSource(k); setMenuOpen(false) }}
@@ -974,10 +1002,11 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
         </button>
       </div>
         {source === 'fixed' ? (
-          <input
+          <textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="h-7 w-full rounded-md border border-hairline bg-white px-2 font-mono text-[12px] text-ink outline-none focus:border-gray-300"
+            rows={1}
+            className="min-h-[28px] w-full resize-y rounded-md border border-hairline bg-white px-2 py-1 font-mono text-[12px] text-ink outline-none focus:border-gray-300"
           />
         ) : source === 'credential' ? null : (
           <div className="w-full text-[12px] italic text-muted">
@@ -998,7 +1027,7 @@ function NewInputRow({ stepOptions, onRemove, onJumpToStep }) {
   const [typeOpen, setTypeOpen] = useState(false)
   const [srcOpen, setSrcOpen] = useState(false)
   const typeLabel = { text: 'Text', number: 'Number', select: 'Select', boolean: 'Boolean', date: 'Date' }
-  const srcLabel = { fixed: 'Fixed value', dynamic: 'Dynamic', credential: 'Credential' }
+  const srcLabel = { fixed: 'Fixed value', dynamic: 'From workflow', credential: 'Credential' }
   const TypeIc = type === 'select' ? IcSelect : type === 'boolean' ? IcCheckSq : type === 'date' ? IcCalendar : type === 'number' ? IcHash : IcType
   return (
     <div className="relative scroll-mt-24 py-3 pr-4">
