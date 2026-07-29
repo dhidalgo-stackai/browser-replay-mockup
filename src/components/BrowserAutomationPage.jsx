@@ -282,16 +282,11 @@ function Card({ r }) {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <div className="text-[14px] font-semibold text-ink">{r.name}</div>
-              <span
-                className={
-                  'flex-shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-medium ring-1 ' +
-                  (r.mode === 'agent'
-                    ? 'bg-violet-50 text-violet-700 ring-violet-200'
-                    : 'bg-gray-50 text-gray-600 ring-gray-200')
-                }
-              >
-                {r.mode === 'agent' ? 'AI Agent' : 'Recorded'}
-              </span>
+              {r.mode === 'agent' && (
+                <span className="flex-shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-medium ring-1 bg-violet-50 text-violet-700 ring-violet-200">
+                  AI Agent
+                </span>
+              )}
             </div>
             <div className="mt-0.5 truncate text-[12px] text-muted">{r.site}</div>
           </div>
