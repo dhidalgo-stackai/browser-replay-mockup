@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Play,
   ChevronDown,
@@ -14,7 +15,30 @@ import {
   PageFile,
   LayoutCube,
   Camera,
+  Video,
 } from './icons.jsx'
+
+const RECORDING_SITES = {
+  'Download vendor invoices': 'netsuite.com',
+  'Extract Salesforce lead list': 'salesforce.com',
+}
+
+function RecordingFavicon({ name, size = 12 }) {
+  const site = RECORDING_SITES[name]
+  const [failed, setFailed] = useState(false)
+  if (!site || failed) {
+    return <span className="text-gray-500"><Video size={size} /></span>
+  }
+  return (
+    <img
+      src={`https://icons.duckduckgo.com/ip3/${site}.ico`}
+      onError={() => setFailed(true)}
+      alt=""
+      style={{ width: size, height: size }}
+      className="flex-shrink-0 rounded-[3px] object-contain"
+    />
+  )
+}
 
 function Port({ side }) {
   return (
@@ -27,7 +51,7 @@ function Port({ side }) {
   )
 }
 
-function WorkflowNode({ icon, iconTone, title, desc, meta, selected, style, onClick }) {
+function WorkflowNode({ icon, iconTone, title, desc, meta, selected, style, onClick, recording }) {
   return (
     <div
       style={style}
@@ -53,6 +77,12 @@ function WorkflowNode({ icon, iconTone, title, desc, meta, selected, style, onCl
         </div>
       </div>
       <div className="mb-3 text-[12.5px] leading-[1.45] text-muted">{desc}</div>
+      {recording && (
+        <div className="mb-3 flex w-full items-center gap-1.5 rounded-md bg-gray-100 px-2 py-1 text-[12px] text-ink">
+          <RecordingFavicon name={recording} />
+          <span className="truncate">{recording}</span>
+        </div>
+      )}
       <div className="mt-1 flex items-center justify-between border-t border-gray-100 pt-2 text-[11.5px] text-muted">
         <div className="flex items-center gap-1">
           <ChevronDown size={12} />
@@ -83,7 +113,7 @@ function Divider() {
   return <div className="mx-1 h-[18px] w-px bg-gray-200" />
 }
 
-export default function Canvas({ onNodeClick, selectedNode }) {
+export default function Canvas({ onNodeClick, selectedNode, savedRecording }) {
   return (
     <div className="canvas-dots relative flex-1 overflow-hidden">
       <div className="absolute left-[100px] top-8 flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
@@ -133,6 +163,7 @@ export default function Canvas({ onNodeClick, selectedNode }) {
         iconTone="orange"
         title="Browser Navigation Replay"
         desc="Replay a saved browser navigation recording from the shared browser..."
+        recording={savedRecording}
         meta={['0.00 sec', 'v1.0.0']}
       />
 

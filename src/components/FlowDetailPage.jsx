@@ -4,7 +4,7 @@ import ReplayModal from './ReplayModal.jsx'
 import Tooltip from './Tooltip.jsx'
 import {
   Folder, Gear, Save, Play, ChevronDown, Kebab, Plus, X,
-  Globe, Cursor, Monitor,
+  Globe, Cursor, Monitor, DownloadArrow,
 } from './icons.jsx'
 
 /* Local micro-icons that aren't already in icons.jsx */
@@ -17,7 +17,7 @@ const Ic = ({ size = 14, sw = 1.8, className, children }) => (
 )
 const IcArrow = (p) => <Ic {...p}><path d="M5 12h14M13 5l7 7-7 7" /></Ic>
 const IcCaret = (p) => <Ic {...p}><path d="M7 10l5 5 5-5" /></Ic>
-const IcPencil = (p) => <Ic {...p}><path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z" /></Ic>
+const IcPencil = (p) => <Ic {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></Ic>
 const IcType = (p) => <Ic {...p}><path d="M4 7V5h16v2M9 5v14M15 19h-6" /></Ic>
 const IcCheckSq = (p) => <Ic {...p}><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M8 12l3 3 5-6" /></Ic>
 const IcSelect = (p) => <Ic {...p}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M8 11l4 4 4-4" /></Ic>
@@ -27,6 +27,8 @@ const IcClock = (p) => <Ic {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7
 const IcCalendar = (p) => <Ic {...p}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></Ic>
 const IcHash = (p) => <Ic {...p}><path d="M5 9h14M5 15h14M10 3L8 21M16 3l-2 18" /></Ic>
 const IcTarget = (p) => <Ic {...p}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="2.2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></Ic>
+const IcBraces = (p) => <Ic {...p}><path d="M8 3H7a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1" /></Ic>
+const IcPlug = (p) => <Ic {...p}><path d="M9 2v6M15 2v6M7 8h10v4a5 5 0 0 1-10 0V8zM12 17v5" /></Ic>
 
 function stepIcon(verb) {
   const size = 16
@@ -274,10 +276,10 @@ function OnErrorDropdown({ value, onChange }) {
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o) }}
-        className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-md border border-hairline bg-white px-3 text-[13px] text-ink hover:bg-gray-50"
+        className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[13px] text-ink hover:bg-gray-50"
       >
-        <span>{onErrorLabel(value)}</span>
-        <IcCaret size={12} className="ml-auto text-gray-400" />
+        <span className="flex-1 text-left">{onErrorLabel(value)}</span>
+        <IcCaret size={14} className="text-gray-400" />
       </button>
       {open && (
         <div
@@ -309,25 +311,19 @@ function FailurePolicyControls({ value, onChange }) {
   const desc = ON_ERROR_OPTIONS.find(o => o[0] === value.onError)?.[2]
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <div className="mb-2">
-          <span className="text-[13px] font-medium text-ink [text-decoration:underline_dotted] underline-offset-[6px] decoration-gray-300">
-            On Error
-          </span>
-        </div>
+      <div className="flex flex-col gap-1">
+        <span className="mb-1.5 block text-[12.5px] font-medium text-gray-700 underline decoration-gray-300 underline-offset-[3px]">On Error</span>
         <OnErrorDropdown value={value.onError} onChange={(v) => set({ onError: v })} />
         {desc && (
-          <div className="mt-1.5 text-[11.5px] text-muted">{desc}</div>
+          <div className="mt-1 text-[11.5px] text-muted">{desc}</div>
         )}
       </div>
       {value.onError === 'agent' && (
-        <div>
-          <div className="mb-2">
-            <span className="text-[13px] font-medium text-ink [text-decoration:underline_dotted] underline-offset-[6px] decoration-gray-300">
-              Prompt
-            </span>
-            <span className="ml-1.5 text-[11.5px] text-muted">What should the agent do?</span>
-          </div>
+        <div className="flex flex-col gap-1">
+          <span className="mb-1.5 block text-[12.5px] font-medium text-gray-700 underline decoration-gray-300 underline-offset-[3px]">
+            Prompt
+            <span className="ml-1.5 font-normal text-muted no-underline">What should the agent do?</span>
+          </span>
           <textarea
             value={value.agentPrompt || ''}
             onChange={(e) => set({ agentPrompt: e.target.value })}
@@ -354,39 +350,29 @@ function policySummary(p) {
   return parts.join(' · ')
 }
 
-function StepItem({ step, stepId, stepNumber, boundInput, boundInputType, defaults, availableInputs = [], onOpenSettings }) {
+function StepItem({ step, stepId, stepNumber, boundInput, boundInputType, defaults, availableInputs = [], isOpen, onOpen }) {
   const { verb, prefix, chip } = stepParts(step)
-  const [previewOpen, setPreviewOpen] = useState(false)
-  const [override, setOverride] = useState(null)
-  const [overrideVisible, setOverrideVisible] = useState(false)
-  const [policyOpen, setPolicyOpen] = useState(false)
+  const [thumbPreviewOpen, setThumbPreviewOpen] = useState(false)
   const literalMatch = prefix.match(/^"([^"]+)"/)
   const capturedLiteral = literalMatch ? literalMatch[1] : (verb === 'Select' && chip ? chip : '')
   const defaultSource = boundInput ? 'input' : 'fixed'
-  const [valueSource, setValueSource] = useState(defaultSource)
-  const [boundInputName, setBoundInputName] = useState(boundInput || (availableInputs[0]?.name ?? ''))
-  const [fixedValue, setFixedValue] = useState(capturedLiteral)
-  const [sourceMenuOpen, setSourceMenuOpen] = useState(false)
-  const [inputMenuOpen, setInputMenuOpen] = useState(false)
-  const valueDirty = valueSource !== defaultSource ||
-    (valueSource === 'input' && boundInputName !== boundInput) ||
-    (valueSource === 'fixed' && fixedValue !== capturedLiteral)
-  const showsValue = verb === 'Type' || verb === 'Select'
-  const policy = override || defaults
-  const isOverridden = override != null && !policyEqual(override, defaults)
-  const displayInput = valueSource === 'input' ? boundInputName : null
+  const displayInput = defaultSource === 'input' ? boundInput : null
   const displayType = displayInput ? (availableInputs.find(x => x.name === displayInput)?.type || boundInputType) : boundInputType
-  const displayLiteral = valueSource === 'fixed' ? fixedValue : capturedLiteral
+  const displayLiteral = capturedLiteral
+  const showsValue = verb === 'Type' || verb === 'Select'
   return (
     <section
       id={stepId}
-      className="group scroll-mt-24 rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors hover:border-gray-300"
+      className={
+        'group scroll-mt-24 rounded-lg border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors ' +
+        (isOpen ? 'border-blue-300 ring-1 ring-blue-200' : 'border-gray-200 hover:border-gray-300')
+      }
     >
       <div
         role="button"
         tabIndex={0}
-        onClick={() => setPolicyOpen(o => !o)}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPolicyOpen(o => !o) } }}
+        onClick={() => onOpen?.()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen?.() } }}
         className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg py-2 pl-3 pr-3 text-left"
       >
         <span className="w-5 flex-none text-center text-[11px] tabular-nums text-gray-400">{stepNumber}</span>
@@ -437,133 +423,204 @@ function StepItem({ step, stepId, stepNumber, boundInput, boundInputType, defaul
           </>
         )}
         <div className="ml-auto flex flex-none items-center gap-2">
-          {(isOverridden || valueDirty) && (
-            <span title={valueDirty ? 'Custom value source' : 'Custom failure handling'} className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-          )}
           <span
-            title={policyOpen ? 'Hide settings' : 'Edit settings'}
+            title={isOpen ? 'Editing' : 'Edit settings'}
             className={
               'flex h-6 w-6 items-center justify-center rounded-md text-muted transition-opacity ' +
-              (policyOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')
+              (isOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')
             }
           >
             <IcPencil size={13} />
           </span>
-          <span className="pointer-events-none flex h-7 w-7 flex-none items-center justify-center overflow-hidden rounded-md border border-hairline bg-white p-0">
-            <span className="block scale-[0.30] origin-center">
+          <span
+            role="button"
+            tabIndex={0}
+            title="Open screenshot preview"
+            onClick={(e) => { e.stopPropagation(); setThumbPreviewOpen(true) }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setThumbPreviewOpen(true) } }}
+            className="flex h-7 w-7 flex-none cursor-pointer items-center justify-center overflow-hidden rounded-md border border-hairline bg-white p-0 hover:border-gray-300 hover:ring-2 hover:ring-gray-200 focus:outline-none"
+          >
+            <span className="pointer-events-none block scale-[0.30] origin-center">
               <StepThumbnail verb={verb} prefix={prefix} chip={chip} />
             </span>
           </span>
         </div>
       </div>
-      {policyOpen && (
-        <div className="anim-fade flex gap-6 rounded-b-lg border-t border-hairline bg-gray-50 px-4 py-3">
-          <div className="min-w-0 flex-1">
-            {showsValue && (
-              <div className="mb-3 flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[12.5px] font-medium text-ink">Value</span>
-                </div>
-                <div className="relative min-w-0">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); setInputMenuOpen(o => !o) }}
-                    className="flex h-8 w-full cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-2.5 text-left text-[12.5px] text-ink hover:bg-gray-50"
-                  >
-                    <IcType size={11} className="text-muted" />
-                    <span className="truncate">{boundInputName || 'Choose input…'}</span>
-                    <IcCaret size={11} className="ml-auto text-gray-400" />
-                  </button>
-                  {inputMenuOpen && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="anim-pop absolute left-0 right-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-md border border-hairline bg-white shadow-[0_6px_20px_rgba(0,0,0,0.08)]"
-                    >
-                      {availableInputs.length === 0 && (
-                        <div className="px-2.5 py-2 text-[12px] text-muted">No inputs defined</div>
-                      )}
-                      {availableInputs.map((inp) => (
-                        <button
-                          key={inp.name}
-                          type="button"
-                          onClick={() => { setBoundInputName(inp.name); setInputMenuOpen(false) }}
-                          className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left hover:bg-gray-50"
-                        >
-                          <IcType size={11} className="text-muted" />
-                          <span className="text-[12.5px] font-medium text-ink">{inp.name}</span>
-                          <span className="text-[11px] text-muted">· {inp.type}</span>
-                          {inp.value && <span className="ml-auto truncate font-mono text-[11px] text-muted">"{inp.value}"</span>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="mt-2 h-px w-full bg-hairline" />
-              </div>
-            )}
-            {(isOverridden || overrideVisible) ? (
-              <>
-                <FailurePolicyControls value={policy} onChange={setOverride} />
-                <button
-                  type="button"
-                  onClick={() => { setOverride(null); setOverrideVisible(false) }}
-                  className="mt-3 cursor-pointer text-[11.5px] font-medium text-muted hover:text-ink"
-                >
-                  Reset to default
-                </button>
-              </>
-            ) : (
-              <div>
-                <div className="mb-1.5 text-[12.5px] font-medium text-ink">
-                  Failure handling
-                </div>
-                <div className="text-[12px] text-muted">
-                  {policySummary(defaults)}
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setOverrideVisible(true)}
-                    className="cursor-pointer rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] font-medium text-ink hover:bg-gray-50"
-                  >
-                    Override for this step
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onOpenSettings?.()}
-                    className="cursor-pointer rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] font-medium text-ink hover:bg-gray-50"
-                  >
-                    Edit defaults
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-          <Tooltip label="Captured from the last replay">
-            <span
-              role="button"
-              tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); setPreviewOpen(true) }}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); e.preventDefault(); setPreviewOpen(true) } }}
-              className="flex h-[200px] w-[360px] flex-none cursor-pointer items-center justify-center overflow-hidden rounded-md border border-hairline bg-white p-0 hover:border-gray-300 hover:ring-2 hover:ring-gray-200 focus:outline-none"
-            >
-              <span className="pointer-events-none block scale-[2.5] origin-center">
-                <StepThumbnail verb={verb} prefix={prefix} chip={chip} />
-              </span>
-            </span>
-          </Tooltip>
-        </div>
-      )}
-      {previewOpen && (
+      {thumbPreviewOpen && (
         <StepPreviewModal
           verb={verb}
           prefix={prefix}
           chip={chip}
           step={step}
-          onClose={() => setPreviewOpen(false)}
+          onClose={() => setThumbPreviewOpen(false)}
         />
       )}
     </section>
+  )
+}
+
+function PanelSection({ icon, label, badge, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div>
+      <div
+        onClick={() => setOpen(o => !o)}
+        className="flex cursor-pointer select-none items-center gap-2.5 border-t border-gray-100 px-4 py-3.5 text-[13px] text-ink"
+      >
+        <span className="flex items-center text-gray-600">{icon}</span>
+        {label}
+        {badge}
+        <span className="ml-auto flex text-gray-400">
+          <IcCaret size={14} className={'transition-transform ' + (open ? 'rotate-180' : '')} />
+        </span>
+      </div>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+      >
+        <div className={open ? 'min-h-0' : 'min-h-0 overflow-hidden'}>
+          <div className="px-4 pb-4 pt-1 text-[12.5px] leading-[1.5] text-muted">{children}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StepConfigPanel({ step, stepNumber, boundInput, boundInputType, defaults, availableInputs = [], onOpenSettings, onClose, skipAnim = false }) {
+  const { verb, prefix, chip } = stepParts(step)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [override, setOverride] = useState(null)
+  const [overrideVisible, setOverrideVisible] = useState(false)
+  const literalMatch = prefix.match(/^"([^"]+)"/)
+  const capturedLiteral = literalMatch ? literalMatch[1] : (verb === 'Select' && chip ? chip : '')
+  const [boundInputName, setBoundInputName] = useState(boundInput || (availableInputs[0]?.name ?? ''))
+  const [inputMenuOpen, setInputMenuOpen] = useState(false)
+  const showsValue = verb === 'Type' || verb === 'Select'
+  const policy = override || defaults
+  const isOverridden = override != null && !policyEqual(override, defaults)
+  return (
+    <>
+    <aside data-step-panel className={(skipAnim ? '' : 'anim-slide-right ') + 'no-scrollbar flex w-[460px] flex-none flex-col overflow-y-auto border-l border-hairline bg-white shadow-[-4px_0_8px_-6px_rgba(0,0,0,0.05)]'}>
+      {/* Header */}
+      <div className="flex flex-none items-center gap-2 border-b border-gray-100 px-4 pb-2.5 pt-3.5">
+        <div className="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] border border-gray-200 bg-white text-gray-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          {stepIcon(verb)}
+        </div>
+        <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold">
+          {verb}{chip ? ` · ${chip}` : ''}
+        </div>
+        <div className="rounded-md border border-gray-200 bg-white px-2 py-[3px] text-[11.5px] font-medium text-gray-600">
+          step-{stepNumber}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close step"
+          className="ml-1.5 flex h-[26px] w-[26px] flex-none cursor-pointer items-center justify-center rounded-md text-muted hover:bg-gray-100"
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      {/* Summary block */}
+      <div className="border-b border-gray-100 bg-gray-50 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-[11.5px] uppercase tracking-[0.06em] text-gray-500">Action</span>
+          <span className="text-[12.5px] text-ink">{verb}</span>
+        </div>
+        {chip && (
+          <div className="mt-1.5 flex items-baseline gap-2">
+            <span className="text-[11.5px] uppercase tracking-[0.06em] text-gray-500">Target</span>
+            <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-ink">{chip}</span>
+          </div>
+        )}
+        {capturedLiteral && (
+          <div className="mt-1.5 flex items-baseline gap-2">
+            <span className="text-[11.5px] uppercase tracking-[0.06em] text-gray-500">Value</span>
+            <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-ink">"{capturedLiteral}"</span>
+          </div>
+        )}
+      </div>
+
+      {/* Value binding — for Type/Select */}
+      {showsValue && (
+        <PanelSection icon={<DownloadArrow size={14} />} label="Input" defaultOpen>
+          <div className="relative min-w-0">
+            <button
+              type="button"
+              onClick={() => setInputMenuOpen(o => !o)}
+              className="flex h-8 w-full cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-2.5 text-left text-[12.5px] text-ink hover:bg-gray-50"
+            >
+              <IcType size={11} className="text-muted" />
+              <span className="truncate">{boundInputName || 'Choose input…'}</span>
+              <IcCaret size={11} className="ml-auto text-gray-400" />
+            </button>
+            {inputMenuOpen && (
+              <div className="anim-pop absolute left-0 right-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-md border border-hairline bg-white shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
+                {availableInputs.length === 0 && (
+                  <div className="px-2.5 py-2 text-[12px] text-muted">No inputs defined</div>
+                )}
+                {availableInputs.map((inp) => (
+                  <button
+                    key={inp.name}
+                    type="button"
+                    onClick={() => { setBoundInputName(inp.name); setInputMenuOpen(false) }}
+                    className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left hover:bg-gray-50"
+                  >
+                    <IcType size={11} className="text-muted" />
+                    <span className="text-[12.5px] font-medium text-ink">{inp.name}</span>
+                    <span className="text-[11px] text-muted">· {inp.type}</span>
+                    {inp.value && <span className="ml-auto truncate font-mono text-[11px] text-muted">"{inp.value}"</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </PanelSection>
+      )}
+
+      {/* Failure handling */}
+      <PanelSection icon={<IcShield size={14} />} label="Failure handling" defaultOpen>
+        <FailurePolicyControls value={policy} onChange={setOverride} />
+        {isOverridden && (
+          <button
+            type="button"
+            onClick={() => { setOverride(null); setOverrideVisible(false) }}
+            className="mt-3 cursor-pointer text-[11.5px] font-medium text-muted hover:text-ink"
+          >
+            Reset to default
+          </button>
+        )}
+      </PanelSection>
+
+      {/* Screenshot preview at bottom */}
+      <PanelSection icon={<Monitor size={14} />} label="Screenshot Previous Run">
+        <Tooltip label="Captured from the last replay">
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => setPreviewOpen(true)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPreviewOpen(true) } }}
+            className="flex aspect-[4/3] w-full cursor-pointer items-center justify-center overflow-hidden rounded-md border border-hairline bg-white p-0 hover:border-gray-300 hover:ring-2 hover:ring-gray-200 focus:outline-none"
+          >
+            <span className="pointer-events-none block origin-center scale-[4]">
+              <StepThumbnail verb={verb} prefix={prefix} chip={chip} />
+            </span>
+          </span>
+        </Tooltip>
+      </PanelSection>
+      <div className="border-t border-gray-100" />
+    </aside>
+    {previewOpen && (
+      <StepPreviewModal
+        verb={verb}
+        prefix={prefix}
+        chip={chip}
+        step={step}
+        onClose={() => setPreviewOpen(false)}
+      />
+    )}
+    </>
   )
 }
 
@@ -664,12 +721,12 @@ function StepMultiPicker({ selectedIds, onChange, stepOptions, onLocate }) {
   }
   const firstSelected = selected[0]
   return (
-    <div className="flex flex-none items-center gap-1">
-      <div ref={ref} className="relative">
+    <div className="flex min-w-0 flex-1 items-center gap-1">
+      <div ref={ref} className="relative min-w-0 flex-1">
         <button
           type="button"
           onClick={() => setOpen(o => !o)}
-          className="inline-flex h-7 min-w-[140px] cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-2 text-[12px] text-ink hover:bg-gray-50"
+          className="flex h-7 w-full cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-2 text-[12px] text-ink hover:bg-gray-50"
         >
           <span className="flex-1 text-left">
             <span className="text-muted">Used in </span>
@@ -758,7 +815,8 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
     return () => document.removeEventListener('mousedown', onDown)
   }, [credMenuOpen])
   return (
-    <div id={`schema-${input.name}`} className="scroll-mt-24 px-4 py-3">
+    <div id={`schema-${input.name}`} className="relative scroll-mt-24 py-3 pr-5">
+      <span aria-hidden className="pointer-events-none absolute -left-4 top-[22px] h-px w-2 bg-gray-200" />
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-md border border-hairline bg-gray-50 px-2 py-0.5 text-[12px] text-ink">
           {(() => {
@@ -772,21 +830,17 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
           })()}
           {input.name}
         </span>
-        <span className="text-[11px] text-muted">{input.type}</span>
-        <div className="ml-auto">
-          <RowKebabMenu items={[
-            ['delete', 'Delete input',   () => {}],
-          ]} />
-        </div>
+        <span className="ml-auto text-[11px] text-muted">{input.type}</span>
       </div>
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-2 flex flex-col gap-2">
+      <div className="flex items-center gap-2">
         <div ref={menuRef} className="relative flex-none">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setMenuOpen(o => !o) }}
-            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-2 text-[12px] text-ink hover:bg-gray-50"
+            className="flex h-7 w-[130px] cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-2 text-[12px] text-ink hover:bg-gray-50"
           >
-            {sourceLabels[source]}
+            <span className="flex-1 text-left">{sourceLabels[source]}</span>
             <IcCaret size={11} className="text-gray-400" />
           </button>
           {menuOpen && (
@@ -806,7 +860,6 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
                     </div>
                   </div>
                 )],
-                ['credential', 'Credential', <span className="text-[11.5px] font-normal text-muted">Injected from the vault, never in logs.</span>],
               ].map(([k, name, tip]) => (
                 <Tooltip key={k} label={tip} side="right" width={k === 'dynamic' ? 280 : 200} padded={k !== 'dynamic'} className="block w-full">
                   <button
@@ -821,13 +874,7 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
             </div>
           )}
         </div>
-        {source === 'fixed' ? (
-          <input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className="h-7 min-w-0 flex-1 rounded-md border border-hairline bg-white px-2 font-mono text-[12px] text-ink outline-none focus:border-gray-300"
-          />
-        ) : source === 'credential' ? (
+        {source === 'credential' ? (
           <div ref={credMenuRef} className="relative min-w-0 flex-1">
             <button
               type="button"
@@ -910,17 +957,32 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
               />
             )}
           </div>
-        ) : (
-          <span className="min-w-0 flex-1 truncate text-[12px] italic text-muted">
-            Not hardcoded — another node will pass this value when used in a workflow
-          </span>
-        )}
+        ) : null}
         <StepMultiPicker
           selectedIds={selectedSteps}
           onChange={setSelectedSteps}
           stepOptions={stepOptions}
           onLocate={onJumpToStep}
         />
+        <button
+          type="button"
+          aria-label="Delete input"
+          className="ml-1 flex h-7 w-7 flex-none cursor-pointer items-center justify-center rounded-md border border-hairline bg-white text-gray-400 hover:bg-gray-50 hover:text-ink"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" /></svg>
+        </button>
+      </div>
+        {source === 'fixed' ? (
+          <input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="h-7 w-full rounded-md border border-hairline bg-white px-2 font-mono text-[12px] text-ink outline-none focus:border-gray-300"
+          />
+        ) : source === 'credential' ? null : (
+          <div className="w-full text-[12px] italic text-muted">
+            The workflow that uses this recording will supply this value each time it runs.
+          </div>
+        )}
       </div>
     </div>
   )
@@ -938,7 +1000,8 @@ function NewInputRow({ stepOptions, onRemove, onJumpToStep }) {
   const srcLabel = { fixed: 'Fixed value', dynamic: 'Dynamic', credential: 'Credential' }
   const TypeIc = type === 'select' ? IcSelect : type === 'boolean' ? IcCheckSq : type === 'date' ? IcCalendar : type === 'number' ? IcHash : IcType
   return (
-    <div className="scroll-mt-24 px-4 py-3">
+    <div className="relative scroll-mt-24 py-3 pr-4">
+      <span aria-hidden className="pointer-events-none absolute -left-4 top-[22px] h-px w-2 bg-gray-200" />
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-md border border-hairline bg-white px-1.5 py-0.5 text-[12px] text-ink">
           <TypeIc size={11} className="text-muted" />
@@ -966,11 +1029,6 @@ function NewInputRow({ stepOptions, onRemove, onJumpToStep }) {
               ))}
             </div>
           )}
-        </div>
-        <div className="ml-auto">
-          <RowKebabMenu items={[
-            ['delete', 'Delete input', onRemove],
-          ]} />
         </div>
       </div>
       <div className="mt-2 flex items-center gap-2">
@@ -1015,44 +1073,45 @@ function NewInputRow({ stepOptions, onRemove, onJumpToStep }) {
           stepOptions={stepOptions}
           onLocate={onJumpToStep}
         />
+        <div className="flex-1" />
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove input"
+          className="ml-1 flex h-6 w-6 flex-none cursor-pointer items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-ink"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" /></svg>
+        </button>
       </div>
     </div>
   )
 }
 
-function InputSchemaPanel({ schema, onJumpToStep, stepOptions = [] }) {
+function InputSchemaPanel({ schema, onJumpToStep, stepOptions = [], hideAddButton = false, addRef }) {
   const [drafts, setDrafts] = useState([])
   const addDraft = () => setDrafts(d => [...d, { id: Date.now() + Math.random() }])
   const removeDraft = (id) => setDrafts(d => d.filter(x => x.id !== id))
+  useEffect(() => { if (addRef) addRef.current = addDraft }, [addRef])
   return (
-    <div className="flex min-w-0 flex-col gap-2.5">
-      <div className="flex items-center gap-2 px-1">
-        <Tooltip
-          label="Inputs the workflow builder renders when this recording is called. Fixed values are baked in; dynamic and credential values are supplied per run."
-          wide
-        >
-          <span className="cursor-help text-[13px] font-semibold text-ink">Inputs</span>
-        </Tooltip>
-        <span className="text-[12px] text-muted">· {schema.length + drafts.length}</span>
+    <div className="flex min-w-0 flex-col pb-3 pl-[23px] pr-4 pt-2">
+      <div className="border-l border-gray-200 pl-4">
+        {schema.map(input => (
+          <SchemaRow key={input.name} input={input} onJumpToStep={onJumpToStep} stepOptions={stepOptions} />
+        ))}
+        {drafts.map(d => (
+          <NewInputRow key={d.id} stepOptions={stepOptions} onJumpToStep={onJumpToStep} onRemove={() => removeDraft(d.id)} />
+        ))}
+      </div>
+      {!hideAddButton && (
         <button
           type="button"
           onClick={addDraft}
-          className="ml-auto inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-hairline bg-white px-3 py-1.5 text-[12.5px] font-medium text-ink hover:bg-gray-50"
+          className="mt-3 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-hairline bg-white px-3 py-2 text-[12.5px] font-medium text-ink hover:bg-gray-50"
         >
           <Plus size={12} sw={2.2} />
           New input
         </button>
-      </div>
-      <section className="rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="divide-y divide-hairline">
-          {schema.map(input => (
-            <SchemaRow key={input.name} input={input} onJumpToStep={onJumpToStep} stepOptions={stepOptions} />
-          ))}
-          {drafts.map(d => (
-            <NewInputRow key={d.id} stepOptions={stepOptions} onJumpToStep={onJumpToStep} onRemove={() => removeDraft(d.id)} />
-          ))}
-        </div>
-      </section>
+      )}
     </div>
   )
 }
@@ -1342,17 +1401,49 @@ function SectionDivider() {
   return <div className="h-px w-full bg-hairline" />
 }
 
-function SidebarSection({ icon, title, children, defaultOpen = false, bodyPadded = true, openSignal }) {
+function MainInfoCard({ icon, title, action, children, defaultOpen = true, openSignal }) {
   const [open, setOpen] = useState(defaultOpen)
   useEffect(() => {
     if (openSignal !== undefined && openSignal > 0) setOpen(true)
   }, [openSignal])
   return (
-    <section>
+    <section className="rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="flex w-full cursor-pointer select-none items-center gap-2.5 border-b border-gray-100 px-4 py-3.5 text-left text-[13px] text-ink"
+        className="flex w-full cursor-pointer select-none items-center gap-2.5 px-4 py-3 text-left text-[13px] font-medium text-ink"
+      >
+        {icon && <span className="flex items-center text-gray-600">{icon}</span>}
+        {title}
+        {action && <span className="ml-auto" onClick={(e) => e.stopPropagation()}>{action}</span>}
+        <IcCaret
+          size={14}
+          className={(action ? '' : 'ml-auto ') + 'text-gray-400 transition-transform ' + (open ? 'rotate-180' : '')}
+        />
+      </button>
+      {open && (
+        <div className="anim-fade border-t border-gray-100 px-4 py-3">
+          {children}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function SidebarSection({ icon, title, children, defaultOpen = false, bodyPadded = true, openSignal, open: openProp, onToggle }) {
+  const [openState, setOpen] = useState(defaultOpen)
+  const isControlled = openProp !== undefined
+  const open = isControlled ? openProp : openState
+  useEffect(() => {
+    if (isControlled) return
+    if (openSignal !== undefined && openSignal > 0) setOpen(true)
+  }, [openSignal, isControlled])
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => { if (isControlled) onToggle?.(); else setOpen(o => !o) }}
+        className="flex w-full cursor-pointer select-none items-center gap-2.5 border-t border-gray-100 px-4 py-3.5 text-left text-[13px] text-ink"
       >
         <span className="flex items-center text-gray-600">{icon}</span>
         {title}
@@ -1362,7 +1453,7 @@ function SidebarSection({ icon, title, children, defaultOpen = false, bodyPadded
         />
       </button>
       {open && (
-        <div className={'anim-fade border-b border-gray-100 text-[12.5px] leading-[1.5] text-muted ' + (bodyPadded ? 'px-4 pb-4 pt-1' : 'pb-2')}>
+        <div className={'anim-fade text-[12.5px] leading-[1.5] text-muted ' + (bodyPadded ? 'px-4 pb-4 pt-1' : 'pb-2')}>
           {children}
         </div>
       )}
@@ -1375,6 +1466,21 @@ export default function FlowDetailPage() {
   const [replayOpen, setReplayOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [failureOpenSignal, setFailureOpenSignal] = useState(0)
+  const [inputsOpenSignal, setInputsOpenSignal] = useState(0)
+  const [activeSetting, setActiveSetting] = useState(null)
+  const settingsPanelRef = useRef(null)
+  const prevRailOpen = useRef(false)
+  useEffect(() => {
+    if (!activeSetting) return
+    function onDown(e) {
+      if (settingsPanelRef.current && !settingsPanelRef.current.contains(e.target) && !e.target.closest('[data-flow-main]')) {
+        setActiveSetting(null)
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [activeSetting])
+  const inputsAddRef = useRef(null)
   const [description, setDescription] = useState(
     'Logs into the NetSuite vendor portal and downloads open invoices for accounts payable.'
   )
@@ -1398,6 +1504,48 @@ export default function FlowDetailPage() {
   }
   const [openRun, setOpenRun] = useState(null)
   const [runPreview, setRunPreview] = useState(null)
+  const [openStepIndex, setOpenStepIndex] = useState(null)
+  const railOpenNow = openStepIndex !== null || !!activeSetting
+  const railSkipAnim = prevRailOpen.current && railOpenNow
+  useEffect(() => { prevRailOpen.current = railOpenNow })
+  const stepDefs = [
+    { text: 'Navigate to https://www.google.com/search?q=contact+form' },
+    { text: 'Click result "Contact us — Example Forms"' },
+    { text: 'Click "Username" field' },
+    { text: 'Type "ada.lovelace" into "Username"', input: 'username' },
+    { text: 'Click "Password" field' },
+    { text: 'Type "••••••••" into "Password"', input: 'password' },
+    { text: 'Click "Sign in"' },
+    { text: 'Click "First name" field' },
+    { text: 'Type "Ada" into "First name"',       input: 'first_name' },
+    { text: 'Click "Last name" field' },
+    { text: 'Type "Lovelace" into "Last name"',   input: 'last_name' },
+    { text: 'Select "United States" in "Country"', input: 'country' },
+    { text: 'Select "Engineer" in "Role"',         input: 'role' },
+    { text: 'Click "Next"' },
+    { text: 'Click "Full name" field' },
+    { text: 'Type "Ada Lovelace" into "Full name"', input: 'full_name' },
+    { text: 'Check "I agree to the terms"' },
+    { text: 'Click "Submit"' },
+  ]
+  const stepIdFor = (i) => `step-${i + 1}`
+  const schema = stepDefs
+    .map((s, i) => ({ ...s, index: i }))
+    .filter(s => s.input)
+    .map(s => {
+      const { verb, prefix, chip } = stepParts(s.text)
+      const valMatch = prefix.match(/^"([^"]+)"/)
+      return {
+        name: s.input,
+        type: verb === 'Select' ? 'select' : 'text',
+        source: 'fixed',
+        value: valMatch ? valMatch[1] : '',
+        stepId: stepIdFor(s.index),
+        stepNumber: s.index + 1,
+        stepLabel: `${verb} ${chip}`,
+        stepVerb: verb,
+      }
+    })
   const [defaultPolicy, setDefaultPolicy] = useState({
     retry: true,
     maxRetries: 2,
@@ -1454,20 +1602,6 @@ export default function FlowDetailPage() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             v3
           </div>
-          {mainTab === 'steps' && (
-            <button
-              type="button"
-              onClick={() => setSettingsOpen(o => !o)}
-              aria-label="Settings"
-              className={
-                'flex h-7 w-7 cursor-pointer items-center justify-center rounded-md ' +
-                (settingsOpen ? 'bg-gray-100 text-ink' : 'text-muted hover:bg-gray-100')
-              }
-            >
-              <Gear size={18} />
-            </button>
-          )}
-
           <div className="h-5 w-px bg-gray-200" />
 
           <button
@@ -1498,48 +1632,10 @@ export default function FlowDetailPage() {
 
       {/* Body */}
       <div className="flex min-h-0 flex-1">
-        <main className={`${mainTab === 'steps' ? 'canvas-dots' : 'bg-[#fafafa]'} no-scrollbar min-w-0 flex-1 overflow-y-auto`}>
+        <main data-flow-main className={`${mainTab === 'steps' ? 'canvas-dots' : 'bg-[#fafafa]'} no-scrollbar min-w-0 flex-1 overflow-y-auto`}>
           <div className={`mx-auto flex w-full ${(mainTab === 'runs' && !openRun) || mainTab === 'steps' ? 'max-w-[1200px]' : 'max-w-[880px]'} flex-col gap-5 px-8 py-6`}>
 
             {mainTab === 'steps' && (() => {
-              const stepDefs = [
-                { text: 'Navigate to https://www.google.com/search?q=contact+form' },
-                { text: 'Click result "Contact us — Example Forms"' },
-                { text: 'Click "Username" field' },
-                { text: 'Type "ada.lovelace" into "Username"', input: 'username' },
-                { text: 'Click "Password" field' },
-                { text: 'Type "••••••••" into "Password"', input: 'password' },
-                { text: 'Click "Sign in"' },
-                { text: 'Click "First name" field' },
-                { text: 'Type "Ada" into "First name"',       input: 'first_name' },
-                { text: 'Click "Last name" field' },
-                { text: 'Type "Lovelace" into "Last name"',   input: 'last_name' },
-                { text: 'Select "United States" in "Country"', input: 'country' },
-                { text: 'Select "Engineer" in "Role"',         input: 'role' },
-                { text: 'Click "Next"' },
-                { text: 'Click "Full name" field' },
-                { text: 'Type "Ada Lovelace" into "Full name"', input: 'full_name' },
-                { text: 'Check "I agree to the terms"' },
-                { text: 'Click "Submit"' },
-              ]
-              const stepIdFor = (i) => `step-${i + 1}`
-              const schema = stepDefs
-                .map((s, i) => ({ ...s, index: i }))
-                .filter(s => s.input)
-                .map(s => {
-                  const { verb, prefix, chip } = stepParts(s.text)
-                  const valMatch = prefix.match(/^"([^"]+)"/)
-                  return {
-                    name: s.input,
-                    type: verb === 'Select' ? 'select' : 'text',
-                    source: 'fixed',
-                    value: valMatch ? valMatch[1] : '',
-                    stepId: stepIdFor(s.index),
-                    stepNumber: s.index + 1,
-                    stepLabel: `${verb} ${chip}`,
-                    stepVerb: verb,
-                  }
-                })
               const flashAndScroll = (id) => {
                 const el = document.getElementById(id)
                 if (!el) return
@@ -1550,22 +1646,116 @@ export default function FlowDetailPage() {
               const jumpToStep = (id) => flashAndScroll(id)
               const jumpToInput = (name) => flashAndScroll(`schema-${name}`)
               return (
-                <div className="flex min-w-0 flex-col">
-                  <InputSchemaPanel
-                    schema={schema}
-                    onJumpToStep={jumpToStep}
-                    stepOptions={stepDefs
-                      .map((s, i) => ({ ...stepParts(s.text), index: i }))
-                      .filter(s => s.verb === 'Type' || s.verb === 'Select')
-                      .map(s => ({
-                        stepId: stepIdFor(s.index),
-                        stepNumber: s.index + 1,
-                        label: `${s.verb} ${s.chip}`.trim(),
-                      }))}
-                  />
+                <div className="flex min-w-0 flex-col gap-5">
+                  <div className="flex items-start gap-3 px-1">
+                    <div className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-white ring-1 ring-hairline">
+                      <img
+                        src="https://icons.duckduckgo.com/ip3/netsuite.com.ico"
+                        alt=""
+                        className="h-6 w-6 object-contain"
+                      />
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
+                      <div className="text-[15px] font-semibold text-ink">Download vendor invoices</div>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted">
+                        <span>portal.netsuite.com</span>
+                        <span className="text-gray-300">·</span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="flex h-[18px] w-[18px] flex-none items-center justify-center rounded-md bg-gray-100 text-[10px] font-semibold text-gray-700 ring-1 ring-gray-200">
+                            J
+                          </span>
+                          <span>John Miller</span>
+                        </span>
+                        {[
+                          ['Last edited', '2 hours ago'],
+                          ['Created', 'Jun 14, 2026'],
+                        ].map(([k, v]) => (
+                          <span key={k} className="inline-flex items-center gap-1.5">
+                            <span className="text-gray-300">·</span>
+                            <span>{k}</span>
+                            <span>{v}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 px-1">
+                    {descEditing ? (
+                      <textarea
+                        autoFocus
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        onBlur={() => setDescEditing(false)}
+                        placeholder="Describe what this recording does…"
+                        className="w-full resize-y rounded-md border border-hairline bg-white px-2 py-1 text-[13px] leading-[1.5] text-ink placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                      />
+                    ) : (
+                      <div
+                        onDoubleClick={() => setDescEditing(true)}
+                        className="cursor-text text-[13px] leading-[1.5] text-ink"
+                      >
+                        {description || (
+                          <span className="text-gray-400">Describe what this recording does…</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 px-1">
+                      <span className="text-[12px] font-medium uppercase tracking-wide text-muted">General</span>
+                    </div>
+                    <div id="main-failure-card" />
+                    {(() => {
+                      const settingsItems = [
+                        {
+                          id: 'failure',
+                          icon: <IcShield size={16} />,
+                          title: 'If a step fails',
+                          value: onErrorLabel(defaultPolicy.onError),
+                        },
+                        {
+                          id: 'sessions',
+                          icon: <IcSliders size={16} />,
+                          title: 'Browser Sessions',
+                          value: "David's Browser Navigation",
+                        },
+                        {
+                          id: 'inputs',
+                          icon: <DownloadArrow size={16} />,
+                          title: 'Inputs',
+                          value: `${schema.length} defined`,
+                        },
+                      ]
+                      return (
+                        <section className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                          {settingsItems.map((it, i) => (
+                            <button
+                              key={it.id}
+                              type="button"
+                              data-settings-trigger
+                              onClick={() => { setActiveSetting(it.id); setOpenStepIndex(null) }}
+                              className={
+                                'flex cursor-pointer items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 ' +
+                                (i > 0 ? 'border-t border-gray-100' : '')
+                              }
+                            >
+                              <span className="flex items-center text-gray-600">{it.icon}</span>
+                              <span className="text-[13px] font-medium text-ink">{it.title}</span>
+                              <span className="text-[12.5px] text-muted">{it.value}</span>
+                              <span className="ml-auto flex items-center text-gray-400">
+                                <IcCaret size={12} className="-rotate-90" />
+                              </span>
+                            </button>
+                          ))}
+                        </section>
+                      )
+                    })()}
+                  </div>
+
                   <div className="mt-10 flex min-w-0 flex-col gap-2.5">
                     <div className="flex items-center gap-2 px-1">
-                      <span className="text-[13px] font-semibold text-ink">Steps</span>
+                      <span className="text-[12px] font-medium uppercase tracking-wide text-muted">Browser Navigation Steps</span>
                       <span className="text-[12px] text-muted">· {stepDefs.length}</span>
                     </div>
                     {stepDefs.map((s, i) => (
@@ -1578,7 +1768,8 @@ export default function FlowDetailPage() {
                         boundInputType={schema.find(x => x.name === s.input)?.type}
                         defaults={defaultPolicy}
                         availableInputs={schema}
-                        onOpenSettings={() => { setSettingsOpen(true); setFailureOpenSignal(s => s + 1) }}
+                        isOpen={openStepIndex === i}
+                        onOpen={() => { setOpenStepIndex(i === openStepIndex ? null : i); setActiveSetting(null) }}
                       />
                     ))}
                     <div className="h-16" />
@@ -1768,14 +1959,14 @@ export default function FlowDetailPage() {
               ]
 
               const runs = [
-                ['ok',   'Succeeded',                  '2 hours ago',        'AP Reconciliation',   'Builder',        'v11', 'dhidalgo@stack-ai.com', '41s',    '—'],
-                ['ok',   'Succeeded',                  'Yesterday, 6:00 AM', 'AP Reconciliation',   'Trigger',        'v11', 'System',                '39s',    '—'],
-                ['fail', 'Failed · agent intervened', 'Jul 8, 6:00 AM',     'Vendor payment sync', 'Trigger',        'v10', 'System',                '2m 04s', 'Selector drift'],
-                ['ok',   'Succeeded',                  'Jul 7, 6:00 AM',     'AP Reconciliation',   'Builder',        'v10', 'dhidalgo@stack-ai.com', '40s',    '—'],
-                ['ok',   'Succeeded · agent intervened', 'Jul 5, 6:00 AM',   'Audit trail export',  'Chat assistant', 'v9',  'dhidalgo@stack-ai.com', '1m 58s', 'Recovered'],
-                ['ok',   'Succeeded',                  'Jul 4, 6:00 AM',     'AP Reconciliation',   'Trigger',        'v9',  'System',                '42s',    '—'],
-                ['ok',   'Succeeded',                  'Jul 3, 6:00 AM',     'AP Reconciliation',   'Trigger',        'v9',  'System',                '40s',    '—'],
-                ['ok',   'Succeeded',                  'Jul 2, 6:00 AM',     'Vendor payment sync', 'Trigger',        'v8',  'System',                '38s',    '—'],
+                ['ok',   'Succeeded',                  '2 hours ago',        'AP Reconciliation',   'Builder',        'v11', 'dhidalgo@stack-ai.com', '41s',    '—',              "David's browser session credentials (Salesforce)"],
+                ['ok',   'Succeeded',                  'Yesterday, 6:00 AM', 'AP Reconciliation',   'Trigger',        'v11', 'System',                '39s',    '—',              "David's browser session credentials (Salesforce)"],
+                ['fail', 'Failed · agent intervened', 'Jul 8, 6:00 AM',     'Vendor payment sync', 'Trigger',        'v10', 'System',                '2m 04s', 'Selector drift', "David's browser session credentials (Zendesk, NetSuite)"],
+                ['ok',   'Succeeded',                  'Jul 7, 6:00 AM',     'AP Reconciliation',   'Builder',        'v10', 'dhidalgo@stack-ai.com', '40s',    '—',              "David's browser session credentials (Salesforce)"],
+                ['ok',   'Succeeded · agent intervened', 'Jul 5, 6:00 AM',   'Audit trail export',  'Chat assistant', 'v9',  'dhidalgo@stack-ai.com', '1m 58s', 'Recovered',      "Erik's SharePoint connection"],
+                ['ok',   'Succeeded',                  'Jul 4, 6:00 AM',     'AP Reconciliation',   'Trigger',        'v9',  'System',                '42s',    '—',              "David's browser session credentials (Salesforce)"],
+                ['ok',   'Succeeded',                  'Jul 3, 6:00 AM',     'AP Reconciliation',   'Trigger',        'v9',  'System',                '40s',    '—',              "David's browser session credentials (Salesforce)"],
+                ['ok',   'Succeeded',                  'Jul 2, 6:00 AM',     'Vendor payment sync', 'Trigger',        'v8',  'System',                '38s',    '—',              "David's browser session credentials (Zendesk, NetSuite)"],
               ]
 
               return (
@@ -1815,17 +2006,18 @@ export default function FlowDetailPage() {
 
                   {/* Recent runs table */}
                   <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                    <div className="grid grid-cols-[1.2fr_1fr_0.5fr_0.9fr_1.3fr_1.2fr_0.6fr_0.9fr] gap-3 border-b border-gray-200 bg-[#f2f2f2] px-4 py-2.5 text-[11px] font-medium text-muted">
+                    <div className="grid grid-cols-[1.2fr_1fr_0.5fr_0.9fr_1.3fr_1.2fr_1.4fr_0.6fr_0.9fr] gap-3 border-b border-gray-200 bg-[#f2f2f2] px-4 py-2.5 text-[11px] font-medium text-muted">
                       <div className="flex items-center gap-1">Status</div>
                       <div className="flex items-center gap-1">Started <IcCaret size={10} /></div>
                       <div className="flex items-center gap-1">Version</div>
                       <div className="flex items-center gap-1">Run type</div>
                       <div className="flex items-center gap-1">Ran by</div>
                       <div className="flex items-center gap-1">Called by</div>
+                      <div className="flex items-center gap-1">Connection used</div>
                       <div className="flex items-center justify-end gap-1">Duration</div>
                       <div className="flex items-center gap-1">Notes</div>
                     </div>
-                    {runs.map(([st, status, when, calledBy, runType, version, ranBy, dur, notes], i) => {
+                    {runs.map(([st, status, when, calledBy, runType, version, ranBy, dur, notes, connection], i) => {
                       const isSystem = ranBy === 'System'
                       const runTypeStyle = runType === 'Trigger'
                         ? 'bg-amber-50 text-amber-700 border-amber-200'
@@ -1837,7 +2029,7 @@ export default function FlowDetailPage() {
                         <div
                           key={i}
                           onClick={() => setOpenRun({ st, status, when, calledBy, trigger: runType, dur, notes })}
-                          className="grid cursor-pointer grid-cols-[1.2fr_1fr_0.5fr_0.9fr_1.3fr_1.2fr_0.6fr_0.9fr] items-center gap-3 border-b border-hairline px-4 py-2.5 last:border-b-0 hover:bg-gray-50">
+                          className="grid cursor-pointer grid-cols-[1.2fr_1fr_0.5fr_0.9fr_1.3fr_1.2fr_1.4fr_0.6fr_0.9fr] items-center gap-3 border-b border-hairline px-4 py-2.5 last:border-b-0 hover:bg-gray-50">
                           <div className="flex min-w-0 items-center gap-2">
                             <div className={'h-2 w-2 flex-none rounded-full ' + (st === 'ok' ? 'bg-emerald-500' : 'bg-red-500')} />
                             <div className={'truncate text-[12.5px] ' + (st === 'ok' ? 'text-ink' : 'text-red-700')}>{status}</div>
@@ -1861,6 +2053,7 @@ export default function FlowDetailPage() {
                             </span>
                           </div>
                           <div className="truncate text-[12.5px] text-ink">{calledBy}</div>
+                          <div className="min-w-0 truncate text-[12.5px] text-ink" title={connection}>{connection}</div>
                           <div className="text-right font-mono text-[12.5px] tabular-nums text-ink">{dur}</div>
                           <div className="truncate text-[12.5px] text-muted">{notes}</div>
                         </div>
@@ -1930,6 +2123,99 @@ export default function FlowDetailPage() {
         </main>
 
         {/* Right rail — full viewport height, own scroll */}
+        {mainTab === 'steps' && openStepIndex !== null && stepDefs[openStepIndex] && (
+          <StepConfigPanel
+            key={openStepIndex}
+            skipAnim={railSkipAnim}
+            step={stepDefs[openStepIndex].text}
+            stepNumber={openStepIndex + 1}
+            boundInput={stepDefs[openStepIndex].input}
+            boundInputType={schema.find(x => x.name === stepDefs[openStepIndex].input)?.type}
+            defaults={defaultPolicy}
+            availableInputs={schema}
+            onOpenSettings={() => { setFailureOpenSignal(s => s + 1); document.getElementById('main-failure-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) }}
+            onClose={() => setOpenStepIndex(null)}
+          />
+        )}
+        {mainTab === 'steps' && activeSetting && (
+          <aside ref={settingsPanelRef} className={(railSkipAnim ? '' : 'anim-slide-right ') + 'no-scrollbar flex w-[460px] flex-none flex-col overflow-y-auto border-l border-hairline bg-white shadow-[-4px_0_8px_-6px_rgba(0,0,0,0.05)]'}>
+            <div className="flex flex-none items-center gap-2 border-b border-gray-100 px-4 pb-2.5 pt-3.5">
+              <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold">
+                General
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveSetting(null)}
+                aria-label="Close settings"
+                className="ml-1.5 flex h-[26px] w-[26px] flex-none cursor-pointer items-center justify-center rounded-md text-muted hover:bg-gray-100"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex flex-1 flex-col">
+              <SidebarSection
+                icon={<IcShield size={16} />}
+                title="If a step fails"
+                open={activeSetting === 'failure'}
+                onToggle={() => setActiveSetting(activeSetting === 'failure' ? null : 'failure')}
+              >
+                <div className="mb-3 text-[11.5px] text-muted">
+                  Default failure handling for all steps. Each step can override this.
+                </div>
+                <FailurePolicyControls value={defaultPolicy} onChange={updatePolicy} />
+              </SidebarSection>
+              <SidebarSection
+                icon={<IcSliders size={16} />}
+                title="Browser Sessions"
+                open={activeSetting === 'sessions'}
+                onToggle={() => setActiveSetting(activeSetting === 'sessions' ? null : 'sessions')}
+              >
+                <div className="flex flex-col gap-3">
+                  {[
+                    ['Browser session', "David's Browser Navigation connection (Zendesk, NetSuite)"],
+                    ['Session token', 'NetSuite prod session · active', true],
+                  ].map(([k, v, active]) => (
+                    <label key={k} className="flex flex-col">
+                      <span className="mb-1.5 block text-[12.5px] font-medium text-gray-700 underline decoration-gray-300 underline-offset-[3px]">{k}</span>
+                      <div className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[13px] text-ink hover:bg-gray-50">
+                        <div className={'h-4 w-4 flex-none rounded border ' + (active ? 'border-emerald-400 bg-emerald-50' : 'border-hairline bg-gray-50')} />
+                        <span className="flex-1 truncate">{v}</span>
+                        <IcCaret size={14} className="flex-none text-gray-400" />
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </SidebarSection>
+              <SidebarSection
+                icon={<DownloadArrow size={16} />}
+                title="Inputs"
+                open={activeSetting === 'inputs'}
+                onToggle={() => setActiveSetting(activeSetting === 'inputs' ? null : 'inputs')}
+                bodyPadded={false}
+              >
+                <InputSchemaPanel
+                  schema={schema}
+                  onJumpToStep={(id) => {
+                    const el = document.getElementById(id)
+                    if (!el) return
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    el.classList.add('ring-2', 'ring-blue-300')
+                    setTimeout(() => el.classList.remove('ring-2', 'ring-blue-300'), 1200)
+                  }}
+                  addRef={inputsAddRef}
+                  stepOptions={stepDefs
+                    .map((s, i) => ({ ...stepParts(s.text), index: i }))
+                    .filter(s => s.verb === 'Type' || s.verb === 'Select')
+                    .map(s => ({
+                      stepId: stepIdFor(s.index),
+                      stepNumber: s.index + 1,
+                      label: `${s.verb} ${s.chip}`.trim(),
+                    }))}
+                />
+              </SidebarSection>
+            </div>
+          </aside>
+        )}
         {mainTab === 'runs' && openRun && (
         <aside className="anim-slide-right no-scrollbar flex w-[380px] flex-none flex-col overflow-y-auto border-l border-hairline bg-white">
           <div className="flex flex-none items-center gap-2 border-b border-hairline px-5 py-3">
@@ -2019,7 +2305,7 @@ export default function FlowDetailPage() {
           </div>
         </aside>
         )}
-        {settingsOpen && mainTab === 'steps' && (
+        {false && settingsOpen && mainTab === 'steps' && (
         <aside className="anim-slide-right no-scrollbar flex w-[460px] flex-none flex-col overflow-y-auto border-l border-hairline bg-white shadow-[-4px_0_8px_-6px_rgba(0,0,0,0.05)]">
           <div className="flex flex-none items-center gap-2 border-b border-gray-100 px-4 pb-2.5 pt-3.5">
             <div className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px] bg-gray-100 text-gray-600">
@@ -2084,7 +2370,22 @@ export default function FlowDetailPage() {
             <FailurePolicyControls value={defaultPolicy} onChange={updatePolicy} />
           </SidebarSection>
 
-          <SidebarSection icon={<IcSliders size={18} />} title="Configuration" defaultOpen={false}>
+          <SidebarSection icon={<IcSliders size={18} />} title="Inputs" defaultOpen={false}>
+            <InputSchemaPanel
+              schema={schema}
+              onJumpToStep={jumpToStep}
+              stepOptions={stepDefs
+                .map((s, i) => ({ ...stepParts(s.text), index: i }))
+                .filter(s => s.verb === 'Type' || s.verb === 'Select')
+                .map(s => ({
+                  stepId: stepIdFor(s.index),
+                  stepNumber: s.index + 1,
+                  label: `${s.verb} ${s.chip}`.trim(),
+                }))}
+            />
+          </SidebarSection>
+
+          <SidebarSection icon={<IcPlug size={18} />} title="Browser Sessions" defaultOpen={false}>
             <div className="flex flex-col gap-3">
               {[
                 ['Credential', 'NetSuite vendor portal'],

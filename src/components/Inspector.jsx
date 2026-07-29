@@ -212,7 +212,8 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
         </Field>
       </div>
 
-      <CollapsibleSection icon={<Gear size={14} />} label="Settings" defaultOpen>
+      <CollapsibleSection icon={<Gear size={14} />} label="Settings" defaultOpen bodyClass="px-4 pb-4 pt-1 text-[12.5px] leading-[1.5] text-muted">
+        <div className="ml-1 border-l border-hairline pl-5">
         {!replayOnly && (
           <>
             <div className="mb-2 flex items-center gap-1.5">
@@ -258,7 +259,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
           <div className="mb-3.5">
             <div className="mb-2 flex items-center gap-1.5">
               <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-                Choose a recording
+                Choose a Browser Recording
               </span>
               <span className="font-bold text-red-500">*</span>
               <span
@@ -281,10 +282,9 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
         {(!replayOnly || savedRecording) && (
           <>
             <div className="mb-2 text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-              Connection
+              Browser session credentials
             </div>
-            <ConnectionSelect />
-            <EndUserConnectionToggle />
+            <ConnectionSelect savedRecording={savedRecording} recordings={allRecordings} />
             <div className="mt-2 text-[12px] leading-[1.5] text-muted">
               <a className="underline decoration-gray-300 underline-offset-[3px]" href="#">
                 Your credentials are encrypted and can be removed at any time
@@ -295,8 +295,10 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
               </a>
               .
             </div>
+            <EndUserConnectionToggle />
           </>
         )}
+        </div>
       </CollapsibleSection>
 
       {/* Inputs */}
@@ -386,8 +388,8 @@ const fieldInputClass =
   'w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none'
 
 const CONNECTIONS = [
-  { id: 'david-bn-1', name: "David's Browser Navigation connection (Salesforce)", user: 'David Hidalgo', when: '1 second ago' },
-  { id: 'david-bn-2', name: "David's Browser Navigation connection (Zendesk, NetSuite)", user: 'David Hidalgo', when: '2 hours ago' },
+  { id: 'david-bn-1', name: "David's Browser Navigation connection (Salesforce)", user: 'David Hidalgo', when: '1 second ago', sites: ['salesforce.com'] },
+  { id: 'david-bn-2', name: "David's Browser Navigation connection (Zendesk, NetSuite)", user: 'David Hidalgo', when: '2 hours ago', sites: ['zendesk.com', 'netsuite.com'] },
 ]
 
 function ConnAvatar({ name }) {
@@ -429,10 +431,14 @@ function EndUserConnectionToggle() {
 function NewConnectionModal({ onClose }) {
   const [step, setStep] = useState(1)
   const [name, setName] = useState("David's Browser Navigation connection")
+  const [creds, setCreds] = useState([{ url: '', user: '', secret: '' }])
+  const updateCred = (i, key, val) => setCreds((cs) => cs.map((c, idx) => (idx === i ? { ...c, [key]: val } : c)))
+  const addCred = () => setCreds((cs) => [...cs, { url: '', user: '', secret: '' }])
+  const removeCred = (i) => setCreds((cs) => (cs.length === 1 ? cs : cs.filter((_, idx) => idx !== i)))
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={onClose}>
       <div
-        className="relative flex w-[520px] min-h-[420px] flex-col rounded-2xl bg-white shadow-2xl"
+        className="relative flex w-[520px] h-[560px] flex-col rounded-2xl bg-white shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {step === 1 && (
@@ -481,8 +487,8 @@ function NewConnectionModal({ onClose }) {
         )}
 
         {step === 2 && (
-          <div>
-            <div className="relative px-8 pb-4 pt-6">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="relative overflow-y-auto px-8 pb-4 pt-6">
               <button
                 onClick={() => setStep(1)}
                 className="absolute left-4 top-4 flex h-7 w-7 items-center justify-center rounded-md text-muted hover:bg-gray-100"
@@ -514,32 +520,57 @@ function NewConnectionModal({ onClose }) {
                   />
                 </div>
                 <div>
-                  <div className="mb-1 text-[12.5px] text-ink">
-                    Credentials URL <span className="text-red-500">*</span>
+                  <div className="mb-1 flex items-center justify-between text-[12.5px] text-ink">
+                    <span>Credentials <span className="text-red-500">*</span></span>
+                    <span className="text-[11.5px] text-muted">{creds.length} {creds.length === 1 ? 'URL' : 'URLs'}</span>
                   </div>
-                  <input
-                    placeholder="https://browser.example.com/nav"
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
-                  />
-                </div>
-                <div>
-                  <div className="mb-1 text-[12.5px] text-ink">
-                    User name <span className="text-red-500">*</span>
+                  <div className="space-y-2">
+                    {creds.map((c, i) => (
+                      <div key={i} className="rounded-lg border border-gray-200 bg-gray-50/60 p-2.5">
+                        <div className="mb-1.5 flex items-center justify-between">
+                          <span className="text-[11.5px] font-medium text-muted">URL {i + 1}</span>
+                          {creds.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeCred(i)}
+                              className="flex h-5 w-5 items-center justify-center rounded text-muted hover:bg-gray-200 hover:text-ink"
+                              aria-label="Remove URL"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          value={c.url}
+                          onChange={(e) => updateCred(i, 'url', e.target.value)}
+                          placeholder="https://browser.example.com/nav"
+                          className="mb-2 w-full rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                        />
+                        <div className="flex gap-2">
+                          <input
+                            value={c.user}
+                            onChange={(e) => updateCred(i, 'user', e.target.value)}
+                            placeholder="User name"
+                            className="w-1/2 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                          />
+                          <input
+                            type="password"
+                            value={c.secret}
+                            onChange={(e) => updateCred(i, 'secret', e.target.value)}
+                            placeholder="Secret"
+                            className="w-1/2 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <input
-                    placeholder="Enter user name"
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
-                  />
-                </div>
-                <div>
-                  <div className="mb-1 text-[12.5px] text-ink">
-                    Secret <span className="text-red-500">*</span>
-                  </div>
-                  <input
-                    type="password"
-                    placeholder="Enter secret"
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
-                  />
+                  <button
+                    type="button"
+                    onClick={addCred}
+                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-[12.5px] text-ink hover:bg-gray-50"
+                  >
+                    <Plus size={12} /> Add another URL
+                  </button>
                 </div>
               </div>
             </div>
@@ -547,9 +578,18 @@ function NewConnectionModal({ onClose }) {
               <button onClick={onClose} className="rounded-lg px-3 py-1.5 text-[13px] text-ink hover:bg-gray-100">
                 Cancel
               </button>
-              <button className="rounded-lg bg-gray-200 px-4 py-1.5 text-[13px] font-medium text-gray-400" disabled>
-                Connect
-              </button>
+              {(() => {
+                const valid = name.trim() && creds.every((c) => c.url.trim() && c.user.trim() && c.secret.trim())
+                return (
+                  <button
+                    onClick={valid ? onClose : undefined}
+                    disabled={!valid}
+                    className={`rounded-lg px-4 py-1.5 text-[13px] font-medium ${valid ? 'bg-ink text-white hover:bg-black' : 'bg-gray-200 text-gray-400'}`}
+                  >
+                    Connect
+                  </button>
+                )
+              })()}
             </div>
           </div>
         )}
@@ -558,11 +598,19 @@ function NewConnectionModal({ onClose }) {
   )
 }
 
-function ConnectionSelect() {
+function ConnectionSelect({ savedRecording, recordings = [] }) {
   const [open, setOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  const [selectedId, setSelectedId] = useState('david-bn-1')
+  const [selectedId, setSelectedId] = useState(null)
+  const [userTouched, setUserTouched] = useState(false)
   const [query, setQuery] = useState('')
+  useEffect(() => {
+    if (userTouched) return
+    const rec = recordings.find((r) => r.name === savedRecording)
+    if (!rec) { setSelectedId(null); return }
+    const match = CONNECTIONS.find((c) => c.sites?.includes(rec.site))
+    setSelectedId(match ? match.id : null)
+  }, [savedRecording, recordings, userTouched])
   const ref = useRef(null)
   useEffect(() => {
     if (!open) return
@@ -581,7 +629,7 @@ function ConnectionSelect() {
         onClick={() => setOpen((o) => !o)}
         className={fieldInputClass + ' flex items-center justify-between text-left'}
       >
-        <span className="truncate">{selected?.name}</span>
+        <span className={'truncate ' + (selected ? '' : 'text-gray-400')}>{selected?.name || 'Select a connection...'}</span>
         <ChevronDown size={14} />
       </button>
       {open && (
@@ -611,7 +659,7 @@ function ConnectionSelect() {
             {filtered.map((c) => (
               <button
                 key={c.id}
-                onClick={() => { setSelectedId(c.id); setOpen(false) }}
+                onClick={() => { setSelectedId(c.id); setUserTouched(true); setOpen(false) }}
                 className={
                   'flex w-full flex-col gap-0.5 px-2.5 py-1.5 text-left hover:bg-gray-50 ' +
                   (c.id === selectedId ? 'bg-gray-100' : '')
@@ -697,7 +745,7 @@ function AiInputs() {
 }
 
 function HardcodedInputField({ label, initial }) {
-  const [value, setValue] = useState(initial ?? '')
+  const [value, setValue] = useState('')
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [tab, setTab] = useState('nodes')
   const [mode, setMode] = useState('manual')
@@ -740,9 +788,9 @@ function HardcodedInputField({ label, initial }) {
             className="flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[12px] text-ink hover:bg-gray-50"
           >
             <span className={mode === 'ai' ? 'text-brand' : 'text-gray-500'}>
-              {mode === 'ai' ? <Sparkle size={12} /> : <Cursor size={12} />}
+              {mode === 'ai' ? <Sparkle size={12} /> : mode === 'default' ? <Video size={12} /> : <Cursor size={12} />}
             </span>
-            {mode === 'ai' ? 'AI auto-fill' : 'Set manually'}
+            {mode === 'ai' ? 'AI auto-fill' : mode === 'default' ? 'Use default values' : 'Set manually'}
             <span className="text-gray-400">
               <ChevronDown size={12} />
             </span>
@@ -752,10 +800,11 @@ function HardcodedInputField({ label, initial }) {
               {[
                 { k: 'manual', icon: <Cursor size={13} />, iconClass: 'text-gray-500', title: 'Set manually', desc: 'You provide a value manually' },
                 { k: 'ai', icon: <Sparkle size={13} />, iconClass: 'text-brand', title: 'AI auto-fill', desc: 'AI fills the value from conversation context' },
+                { k: 'default', icon: <Video size={13} />, iconClass: 'text-gray-500', title: 'Use default values', desc: 'Load the value saved with the recording' },
               ].map((o) => (
                 <div
                   key={o.k}
-                  onClick={() => { setMode(o.k); setModeOpen(false) }}
+                  onClick={() => { setMode(o.k); setModeOpen(false); if (o.k === 'default') setValue(initial ?? '') }}
                   className={
                     'flex cursor-pointer gap-2 px-3 py-2 text-[13px] hover:bg-gray-50 ' +
                     (mode === o.k ? 'bg-gray-50' : '')
@@ -783,7 +832,7 @@ function HardcodedInputField({ label, initial }) {
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => setPopoverOpen(true)}
           className="h-7 flex-1 min-w-0 bg-transparent font-mono text-[12px] text-ink outline-none placeholder:text-gray-400"
-          placeholder={initial}
+          placeholder="Start typing to add values..."
         />
       </div>
       )}
@@ -847,7 +896,7 @@ function SavedRecordingSelector({ onOpenSandbox, savedRecording, onSelectRecordi
       {showLabel && (
         <div className="mb-2 flex items-center gap-1.5">
           <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-            Choose a recording
+            Choose a Browser Recording
           </span>
           <span className="font-bold text-red-500">*</span>
         </div>
@@ -937,7 +986,7 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
               <ChevronDown size={14} />
             </span>
             <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-              Choose a recording
+              Choose a Browser Recording
             </span>
             <span className="font-bold text-red-500">*</span>
             <span className="ml-auto font-mono text-[12.5px] text-gray-400">string</span>

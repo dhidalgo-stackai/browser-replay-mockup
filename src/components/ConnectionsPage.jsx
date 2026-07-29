@@ -4,8 +4,8 @@ import { Search, Plus, Kebab, ChevronDown, InfoCircle, ShareNodes, Monitor } fro
 import Tooltip from './Tooltip.jsx'
 
 const CONNECTIONS = [
-  { provider: 'Browser Navigation', logo: null, name: "David's Browser Navigation connection", createdBy: 'David Hidalgo', date: 'July 29, 2026', apps: [{ name: 'Salesforce', logo: 'salesforce.com' }] },
-  { provider: 'Browser Navigation', logo: null, name: "David's Browser Navigation connection", createdBy: 'David Hidalgo', date: 'July 29, 2026', apps: [{ name: 'Zendesk', logo: 'zendesk.com' }, { name: 'NetSuite', logo: 'netsuite.com' }] },
+  { provider: 'Browser Navigation', logo: null, name: "David's browser session credentials", createdBy: 'David Hidalgo', date: 'July 29, 2026', apps: [{ name: 'Salesforce', logo: 'salesforce.com' }] },
+  { provider: 'Browser Navigation', logo: null, name: "David's browser session credentials", createdBy: 'David Hidalgo', date: 'July 29, 2026', apps: [{ name: 'Zendesk', logo: 'zendesk.com' }, { name: 'NetSuite', logo: 'netsuite.com' }] },
   { provider: 'SharePoint', logo: 'sharepoint.com', name: "Erik's SharePoint connection", createdBy: 'Erik Wrede', date: 'July 28, 2026' },
   { provider: 'Firecrawl', logo: 'firecrawl.dev', name: "Alberto's Firecrawl connection", createdBy: 'Alberto Arrighi', date: 'July 27, 2026' },
   { provider: 'Slack (Bot Token)', logo: 'slack.com', name: 'AIS Take Home Assignment Connection', createdBy: 'Zach Beeler', date: 'July 27, 2026' },

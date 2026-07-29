@@ -46,7 +46,7 @@ export default function App() {
         <Topbar />
 
         <div className="relative flex min-h-0 flex-1">
-          <Canvas selectedNode={selectedNode} onNodeClick={(id) => { setSelectedNode(id); setInspectorOpen(true) }} />
+          <Canvas selectedNode={selectedNode} savedRecording={savedRecording} onNodeClick={(id) => { setSelectedNode(id); setInspectorOpen(true) }} />
 
           {inspectorOpen && (
             <Inspector
