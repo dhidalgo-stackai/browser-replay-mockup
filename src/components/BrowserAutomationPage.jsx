@@ -167,15 +167,6 @@ const RECORDINGS = [
     site: 'portal.netsuite.com',
   },
   {
-    name: 'Extract Salesforce lead list',
-    author: 'StackAI',
-    org: true,
-    desc: 'Pulls the weekly qualified-leads report from Salesforce Lightning and drops it into the shared drive.',
-    updated: 'July 18, 2026',
-    site: 'lightning.force.com',
-    mode: 'agent',
-  },
-  {
     name: 'Sync Zendesk tickets',
     author: 'Shani Fargun',
     desc: 'Scrapes new Zendesk tickets tagged "billing" and pushes them into the CRM as follow-up tasks.',
@@ -692,7 +683,6 @@ export default function BrowserAutomationPage() {
 
         <main className="min-w-0 flex-1 overflow-y-auto bg-[#fafafa]">
           <div className="flex w-full flex-col gap-5 px-8 py-6">
-            <div><PageTabs active={active} /></div>
             {active === 'recordings' && (
               <>
                 <div className="flex items-center gap-3">
