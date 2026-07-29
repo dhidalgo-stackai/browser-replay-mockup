@@ -10,7 +10,7 @@ const CONNECTIONS = [
   { provider: 'Firecrawl', logo: 'firecrawl.dev', name: "Alberto's Firecrawl connection", createdBy: 'Alberto Arrighi', date: 'July 27, 2026' },
   { provider: 'Slack (Bot Token)', logo: 'slack.com', name: 'AIS Take Home Assignment Connection', createdBy: 'Zach Beeler', date: 'July 27, 2026' },
   { provider: 'Asana', logo: 'asana.com', name: "John's Asana Connector - Test Triggers connection", createdBy: 'John Miller', date: 'July 24, 2026' },
-  { provider: 'MCP', logo: null, name: "Shani's MCP connection (circleback)", createdBy: 'Shani Fargun', date: 'July 20, 2026' },
+  { provider: 'MCP', logo: 'https://api.stackai.com/providers/mcp/icon', name: "Shani's MCP connection (circleback)", createdBy: 'Shani Fargun', date: 'July 20, 2026' },
   { provider: 'Outlook (OAuth2)', logo: 'outlook.com', name: "David's Outlook (OAuth2) connection - dhidalgo@St…", createdBy: 'David Hidalgo', date: 'July 20, 2026' },
   { provider: 'Gmail', logo: 'gmail.com', name: "David's Gmail connection - dhidalgo@stack-ai.com", createdBy: 'David Hidalgo', date: 'July 20, 2026' },
   { provider: 'Gmail', logo: 'gmail.com', name: "David's Gmail connection - dhidalgo@stack-ai.com", createdBy: 'David Hidalgo', date: 'July 20, 2026' },
@@ -43,7 +43,7 @@ function ProviderLogo({ domain, name }) {
   return (
     <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-white ring-1 ring-hairline">
       <img
-        src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
+        src={domain.startsWith('http') ? domain : `https://icons.duckduckgo.com/ip3/${domain}.ico`}
         onError={() => setFailed(true)}
         alt=""
         className="h-4 w-4 object-contain"

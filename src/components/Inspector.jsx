@@ -22,6 +22,9 @@ import {
   Cursor,
   Sparkle,
   Search,
+  ArrowLeft,
+  Lock,
+  StackAILogo,
 } from './icons.jsx'
 
 function HeaderIconBtn({ children, onClick }) {
@@ -192,7 +195,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
 
         <Field label="Provider" bare>
           <Select
-            icon={<Monitor size={14} />}
+            icon={<span className="text-orange-500"><Monitor size={14} /></span>}
             value="StackAI Computer"
           />
         </Field>
@@ -255,7 +258,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
           <div className="mb-3.5">
             <div className="mb-2 flex items-center gap-1.5">
               <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-                Saved Recording
+                Choose a recording
               </span>
               <span className="font-bold text-red-500">*</span>
               <span
@@ -281,6 +284,7 @@ export default function Inspector({ onOpenSandbox, onClose, savedRecording, onSe
               Connection
             </div>
             <ConnectionSelect />
+            <EndUserConnectionToggle />
             <div className="mt-2 text-[12px] leading-[1.5] text-muted">
               <a className="underline decoration-gray-300 underline-offset-[3px]" href="#">
                 Your credentials are encrypted and can be removed at any time
@@ -382,10 +386,8 @@ const fieldInputClass =
   'w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none'
 
 const CONNECTIONS = [
-  { id: 'david-1', name: "David's Google Drive connection", user: 'David Hidalgo', when: '1 second ago' },
-  { id: 'marta', name: "Marta's Gdrive connection", user: 'Marta Llopis', when: '12 hours ago' },
-  { id: 'jenny', name: 'Google Drive', user: 'Jenny Liang', when: '17 hours ago' },
-  { id: 'david-2', name: "David's Google Drive connection", user: 'David Hidalgo', when: '17 hours ago' },
+  { id: 'david-bn-1', name: "David's Browser Navigation connection (Salesforce)", user: 'David Hidalgo', when: '1 second ago' },
+  { id: 'david-bn-2', name: "David's Browser Navigation connection (Zendesk, NetSuite)", user: 'David Hidalgo', when: '2 hours ago' },
 ]
 
 function ConnAvatar({ name }) {
@@ -397,9 +399,169 @@ function ConnAvatar({ name }) {
   )
 }
 
+function EndUserConnectionToggle() {
+  const [on, setOn] = useState(false)
+  return (
+    <div className="mt-3 flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <div className="text-[13px] text-ink">Use end-user connection</div>
+        <div className="text-[12px] text-muted">Require end-users to authenticate at runtime</div>
+      </div>
+      <button
+        type="button"
+        onClick={() => setOn((v) => !v)}
+        className={
+          'relative inline-flex h-[22px] w-[38px] flex-shrink-0 items-center rounded-full transition-colors ' +
+          (on ? 'bg-ink' : 'bg-gray-200')
+        }
+      >
+        <span
+          className={
+            'inline-block h-[18px] w-[18px] transform rounded-full bg-white shadow transition-transform ' +
+            (on ? 'translate-x-[18px]' : 'translate-x-[2px]')
+          }
+        />
+      </button>
+    </div>
+  )
+}
+
+function NewConnectionModal({ onClose }) {
+  const [step, setStep] = useState(1)
+  const [name, setName] = useState("David's Browser Navigation connection")
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={onClose}>
+      <div
+        className="relative flex w-[520px] min-h-[420px] flex-col rounded-2xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {step === 1 && (
+          <div className="px-8 py-14">
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-md text-muted hover:bg-gray-100"
+            >
+              <X size={16} />
+            </button>
+            <div className="flex flex-col items-center">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white ring-1 ring-gray-200 shadow-sm">
+                  <StackAILogo size={22} />
+                </div>
+                <div className="flex gap-1">
+                  <span className="h-1 w-1 rounded-full bg-gray-300" />
+                  <span className="h-1 w-1 rounded-full bg-gray-300" />
+                  <span className="h-1 w-1 rounded-full bg-gray-300" />
+                  <span className="h-1 w-1 rounded-full bg-gray-300" />
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-orange-500 ring-1 ring-gray-200 shadow-sm">
+                  <Monitor size={22} />
+                </div>
+              </div>
+              <div className="mt-5 text-[16px] font-semibold text-ink">Connect StackAI to Browser Navigation</div>
+              <div className="mt-1 text-center text-[13px] text-muted">
+                Choose how you'd like to connect your Browser Navigation workspace to StackAI.
+              </div>
+            </div>
+
+            <button
+              onClick={() => setStep(2)}
+              className="mt-6 flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left hover:bg-gray-50"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-50 text-ink ring-1 ring-gray-200">
+                <Lock size={18} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[13.5px] font-medium text-ink">Connect Browser Navigation</div>
+                <div className="text-[12px] text-muted">OAuth Connection</div>
+              </div>
+            </button>
+
+          </div>
+        )}
+
+        {step === 2 && (
+          <div>
+            <div className="relative px-8 pb-4 pt-6">
+              <button
+                onClick={() => setStep(1)}
+                className="absolute left-4 top-4 flex h-7 w-7 items-center justify-center rounded-md text-muted hover:bg-gray-100"
+              >
+                <ArrowLeft size={16} />
+              </button>
+              <button
+                onClick={onClose}
+                className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-md text-muted hover:bg-gray-100"
+              >
+                <X size={16} />
+              </button>
+              <div className="mt-4 flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-orange-500 ring-1 ring-gray-200">
+                  <Monitor size={16} />
+                </div>
+                <div className="text-[15px] font-semibold text-ink">Connect Browser Navigation</div>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <div>
+                  <div className="mb-1 text-[12.5px] text-ink">
+                    Connection Name <span className="text-red-500">*</span>
+                  </div>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] text-ink focus:outline-none focus:ring-1 focus:ring-gray-300"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-[12.5px] text-ink">
+                    Credentials URL <span className="text-red-500">*</span>
+                  </div>
+                  <input
+                    placeholder="https://browser.example.com/nav"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-[12.5px] text-ink">
+                    User name <span className="text-red-500">*</span>
+                  </div>
+                  <input
+                    placeholder="Enter user name"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-[12.5px] text-ink">
+                    Secret <span className="text-red-500">*</span>
+                  </div>
+                  <input
+                    type="password"
+                    placeholder="Enter secret"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] text-ink placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="mt-auto flex items-center justify-end gap-2 rounded-b-2xl border-t border-gray-100 bg-[#fafafa] px-6 py-3">
+              <button onClick={onClose} className="rounded-lg px-3 py-1.5 text-[13px] text-ink hover:bg-gray-100">
+                Cancel
+              </button>
+              <button className="rounded-lg bg-gray-200 px-4 py-1.5 text-[13px] font-medium text-gray-400" disabled>
+                Connect
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function ConnectionSelect() {
   const [open, setOpen] = useState(false)
-  const [selectedId, setSelectedId] = useState('david-1')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState('david-bn-1')
   const [query, setQuery] = useState('')
   const ref = useRef(null)
   useEffect(() => {
@@ -435,7 +597,10 @@ function ConnectionSelect() {
             />
           </div>
           <div className="border-b border-gray-100 py-1">
-            <button className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50">
+            <button
+              onClick={() => { setOpen(false); setModalOpen(true) }}
+              className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
+            >
               <Plus size={14} /> New connection
             </button>
             <button className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50">
@@ -467,6 +632,7 @@ function ConnectionSelect() {
           </div>
         </div>
       )}
+      {modalOpen && <NewConnectionModal onClose={() => setModalOpen(false)} />}
     </div>
   )
 }
@@ -681,7 +847,7 @@ function SavedRecordingSelector({ onOpenSandbox, savedRecording, onSelectRecordi
       {showLabel && (
         <div className="mb-2 flex items-center gap-1.5">
           <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-            Saved Recording
+            Choose a recording
           </span>
           <span className="font-bold text-red-500">*</span>
         </div>
@@ -706,23 +872,37 @@ function SavedRecordingSelector({ onOpenSandbox, savedRecording, onSelectRecordi
               ref={menuRef}
               className="anim-pop absolute left-0 right-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
             >
-              {recordings.map((r) => {
-                const isSel = r.name === savedRecording
-                return (
-                  <div
-                    key={r.name}
-                    onClick={() => { onSelectRecording(r.name); setOpen(false) }}
-                    className={
-                      'flex cursor-pointer items-center gap-2 px-2.5 py-2 text-[13px] hover:bg-gray-50 ' +
-                      (isSel ? 'bg-gray-50 text-ink' : 'text-ink')
-                    }
-                  >
-                    <RecordingLogo site={r.site} name={r.name} />
-                    <span className="flex-1 truncate">{r.name}</span>
-                    {isSel && <span className="text-[11.5px] text-muted">Selected</span>}
-                  </div>
-                )
-              })}
+              <div className="border-b border-gray-100 px-3 py-2.5">
+                <input
+                  placeholder="Search for recordings..."
+                  className="w-full bg-transparent text-[13px] text-ink placeholder:text-gray-400 focus:outline-none"
+                />
+              </div>
+              <div className="max-h-[280px] overflow-y-auto py-1">
+                {recordings.map((r) => {
+                  const isSel = r.name === savedRecording
+                  return (
+                    <div
+                      key={r.name}
+                      onClick={() => { onSelectRecording(r.name); setOpen(false) }}
+                      className={
+                        'mx-1 flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2.5 text-[13px] hover:bg-gray-100 ' +
+                        (isSel ? 'bg-gray-100 text-ink' : 'text-ink')
+                      }
+                    >
+                      <RecordingLogo site={r.site} name={r.name} />
+                      <span className="flex-1 truncate">{r.name}</span>
+                      {isSel && (
+                        <span className="text-ink">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 6L9 17l-5-5" />
+                          </svg>
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -757,7 +937,7 @@ function ManualInputs({ onOpenSandbox, savedRecording, onSelectRecording, onClea
               <ChevronDown size={14} />
             </span>
             <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-              Saved Recording
+              Choose a recording
             </span>
             <span className="font-bold text-red-500">*</span>
             <span className="ml-auto font-mono text-[12.5px] text-gray-400">string</span>
