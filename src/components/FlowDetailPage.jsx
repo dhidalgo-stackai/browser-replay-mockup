@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import LeftRail from './LeftRail.jsx'
+import { ConnectionSelect } from './Inspector.jsx'
 import ReplayModal from './ReplayModal.jsx'
 import Tooltip from './Tooltip.jsx'
 import {
@@ -1717,7 +1718,7 @@ export default function FlowDetailPage() {
                         {
                           id: 'sessions',
                           icon: <IcSliders size={16} />,
-                          title: 'Browser Sessions',
+                          title: 'Default Browser Session',
                           value: "David's Browser Navigation",
                         },
                         {
@@ -2166,24 +2167,39 @@ export default function FlowDetailPage() {
               </SidebarSection>
               <SidebarSection
                 icon={<IcSliders size={16} />}
-                title="Browser Sessions"
+                title="Default Browser Session"
                 open={activeSetting === 'sessions'}
                 onToggle={() => setActiveSetting(activeSetting === 'sessions' ? null : 'sessions')}
               >
-                <div className="flex flex-col gap-3">
-                  {[
-                    ['Browser session', "David's Browser Navigation connection (Zendesk, NetSuite)"],
-                    ['Session token', 'NetSuite prod session · active', true],
-                  ].map(([k, v, active]) => (
-                    <label key={k} className="flex flex-col">
-                      <span className="mb-1.5 block text-[12.5px] font-medium text-gray-700 underline decoration-gray-300 underline-offset-[3px]">{k}</span>
-                      <div className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-[13px] text-ink hover:bg-gray-50">
-                        <div className={'h-4 w-4 flex-none rounded border ' + (active ? 'border-emerald-400 bg-emerald-50' : 'border-hairline bg-gray-50')} />
-                        <span className="flex-1 truncate">{v}</span>
-                        <IcCaret size={14} className="flex-none text-gray-400" />
+                <div className="flex flex-col">
+                  <div className="mb-2 text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
+                    Browser session credentials
+                  </div>
+                  <ConnectionSelect initialSelectedId="david-bn-2" />
+                  <div className="mt-2 text-[12px] leading-[1.5] text-muted">
+                    <a className="underline decoration-gray-300 underline-offset-[3px]" href="#">
+                      Your credentials are encrypted and can be removed at any time
+                    </a>
+                    . You can manage all your connections{' '}
+                    <a className="underline decoration-gray-300 underline-offset-[3px]" href="#">
+                      here
+                    </a>
+                    .
+                  </div>
+                  <div className="mt-4 flex flex-col gap-1.5 border-t border-hairline pt-3 text-[12.5px] text-ink">
+                    {[
+                      ['Cookies', 'Accepted'],
+                      ['Session token', 'NetSuite prod · active'],
+                      ['Last authenticated', '2 hours ago'],
+                      ['Expires', 'In 6 days'],
+                      ['User agent', 'Chrome 128 · macOS'],
+                    ].map(([k, v]) => (
+                      <div key={k} className="flex items-baseline justify-between gap-3">
+                        <span className="text-muted">{k}</span>
+                        <span className="truncate text-right">{v}</span>
                       </div>
-                    </label>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </SidebarSection>
               <SidebarSection
@@ -2385,7 +2401,7 @@ export default function FlowDetailPage() {
             />
           </SidebarSection>
 
-          <SidebarSection icon={<IcPlug size={18} />} title="Browser Sessions" defaultOpen={false}>
+          <SidebarSection icon={<IcPlug size={18} />} title="Default Browser Session" defaultOpen={false}>
             <div className="flex flex-col gap-3">
               {[
                 ['Credential', 'NetSuite vendor portal'],

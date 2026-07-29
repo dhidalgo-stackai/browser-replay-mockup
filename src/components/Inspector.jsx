@@ -598,19 +598,19 @@ function NewConnectionModal({ onClose }) {
   )
 }
 
-function ConnectionSelect({ savedRecording, recordings = [] }) {
+export function ConnectionSelect({ savedRecording, recordings = [], initialSelectedId = null }) {
   const [open, setOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  const [selectedId, setSelectedId] = useState(null)
+  const [selectedId, setSelectedId] = useState(initialSelectedId)
   const [userTouched, setUserTouched] = useState(false)
   const [query, setQuery] = useState('')
   useEffect(() => {
     if (userTouched) return
     const rec = recordings.find((r) => r.name === savedRecording)
-    if (!rec) { setSelectedId(null); return }
+    if (!rec) { setSelectedId(initialSelectedId); return }
     const match = CONNECTIONS.find((c) => c.sites?.includes(rec.site))
-    setSelectedId(match ? match.id : null)
-  }, [savedRecording, recordings, userTouched])
+    setSelectedId(match ? match.id : initialSelectedId)
+  }, [savedRecording, recordings, userTouched, initialSelectedId])
   const ref = useRef(null)
   useEffect(() => {
     if (!open) return
