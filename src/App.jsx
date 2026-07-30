@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Topbar from './components/Topbar.jsx'
 import LeftRail from './components/LeftRail.jsx'
 import Canvas from './components/Canvas.jsx'
-import Inspector from './components/Inspector.jsx'
+import Inspector, { ensureSessionAndConnectionForSite } from './components/Inspector.jsx'
 import SandboxModal from './components/SandboxModal.jsx'
 import FlowDetailPage from './components/FlowDetailPage.jsx'
 import AgentFlowDetailPage from './components/AgentFlowDetailPage.jsx'
@@ -24,10 +24,11 @@ export default function App() {
   const [selectedNode, setSelectedNode] = useState('replay')
   const [savedRecording, setSavedRecording] = useState(null)
   const [extraRecordings, setExtraRecordings] = useState([])
+  const [sandboxSession, setSandboxSession] = useState(null)
   const route = useHashRoute()
   const sandboxOpen = route.startsWith('/sandbox/browser-navigation')
 
-  const openSandbox = () => { window.location.hash = '/sandbox/browser-navigation' }
+  const openSandbox = (session = null) => { setSandboxSession(session); window.location.hash = '/sandbox/browser-navigation' }
   const closeSandbox = () => {
     if (window.location.hash) history.pushState('', '', window.location.pathname + window.location.search)
     window.dispatchEvent(new HashChangeEvent('hashchange'))
@@ -65,12 +66,14 @@ export default function App() {
 
       {sandboxOpen && (
         <SandboxModal
+          session={sandboxSession}
           onClose={closeSandbox}
           onSaveRecording={(recording) => {
-            const { name, inputs = [] } = typeof recording === 'string' ? { name: recording } : recording
+            const { name, inputs = [], site = 'google.com' } = typeof recording === 'string' ? { name: recording } : recording
+            ensureSessionAndConnectionForSite(site)
             setExtraRecordings((prev) => {
               const without = prev.filter((r) => r.name !== name)
-              return [{ name, inputs }, ...without]
+              return [{ name, inputs, site }, ...without]
             })
             setSavedRecording(name)
             closeSandbox()

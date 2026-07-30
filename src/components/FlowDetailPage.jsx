@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import LeftRail from './LeftRail.jsx'
-import { ConnectionSelect } from './Inspector.jsx'
+import { ConnectionSelect, SessionSelect, SESSIONS, CONNECTIONS } from './Inspector.jsx'
 import ReplayModal from './ReplayModal.jsx'
 import Tooltip from './Tooltip.jsx'
 import {
@@ -424,15 +424,6 @@ function StepItem({ step, stepId, stepNumber, boundInput, boundInputType, defaul
           </>
         )}
         <div className="ml-auto flex flex-none items-center gap-2">
-          <span
-            title={isOpen ? 'Editing' : 'Edit settings'}
-            className={
-              'flex h-6 w-6 items-center justify-center rounded-md text-muted transition-opacity ' +
-              (isOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')
-            }
-          >
-            <IcPencil size={13} />
-          </span>
           <span
             role="button"
             tabIndex={0}
@@ -993,13 +984,6 @@ function SchemaRow({ input, onJumpToStep, stepOptions = [] }) {
           stepOptions={stepOptions}
           onLocate={onJumpToStep}
         />
-        <button
-          type="button"
-          aria-label="Delete input"
-          className="ml-1 flex h-7 w-7 flex-none cursor-pointer items-center justify-center rounded-md border border-hairline bg-white text-gray-400 hover:bg-gray-50 hover:text-ink"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" /></svg>
-        </button>
       </div>
         {source === 'fixed' ? (
           <textarea
@@ -1492,12 +1476,23 @@ function SidebarSection({ icon, title, children, defaultOpen = false, bodyPadded
 }
 
 export default function FlowDetailPage() {
+  const isCompetitor = typeof window !== 'undefined' && window.location.hash.includes('r=competitor')
   const [tab, setTab] = useState('overview')
   const [replayOpen, setReplayOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [failureOpenSignal, setFailureOpenSignal] = useState(0)
   const [inputsOpenSignal, setInputsOpenSignal] = useState(0)
   const [activeSetting, setActiveSetting] = useState(null)
+  const [defaultSessionId, setDefaultSessionId] = useState('ns-david')
+  const [defaultConnectionId, setDefaultConnectionId] = useState('david-bn-2')
+  const [defaultConnectionTouched, setDefaultConnectionTouched] = useState(false)
+  const [sessionDetailsOpen, setSessionDetailsOpen] = useState(false)
+  useEffect(() => {
+    if (defaultConnectionTouched) return
+    const s = SESSIONS.find((x) => x.id === defaultSessionId)
+    if (s?.connectionId) setDefaultConnectionId(s.connectionId)
+  }, [defaultSessionId, defaultConnectionTouched])
+  const defaultSession = SESSIONS.find((s) => s.id === defaultSessionId)
   const settingsPanelRef = useRef(null)
   const prevRailOpen = useRef(false)
   useEffect(() => {
@@ -1516,7 +1511,7 @@ export default function FlowDetailPage() {
   )
   const [descEditing, setDescEditing] = useState(false)
   const tabFromHash = () => {
-    const m = (window.location.hash || '').match(/^#\/browser-automation\/recording\/(steps|runs|references)/)
+    const m = (window.location.hash || '').match(/^#\/browser-automation\/recording\/(steps|runs|references|sessions)/)
     return m ? m[1] : 'steps'
   }
   const [mainTab, setMainTabState] = useState(tabFromHash)
@@ -1600,7 +1595,7 @@ export default function FlowDetailPage() {
           <span className="opacity-60"><Monitor size={16} /></span>
           <a href="#/browser-automation" className="hover:text-ink">Browser automation</a>
           <span className="text-gray-300">/</span>
-          <span className="font-medium text-ink">Download vendor invoices</span>
+          <span className="font-medium text-ink">{isCompetitor ? 'Competitor page screenshots' : 'Download vendor invoices'}</span>
         </div>
 
         <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -1608,6 +1603,7 @@ export default function FlowDetailPage() {
             {[
               ['steps', 'Recording'],
               ['runs', 'Analytics'],
+              ['sessions', 'Sessions'],
               ['references', 'References'],
             ].map(([id, label]) => (
               <button
@@ -1663,7 +1659,7 @@ export default function FlowDetailPage() {
       {/* Body */}
       <div className="flex min-h-0 flex-1">
         <main data-flow-main className={`${mainTab === 'steps' ? 'canvas-dots' : 'bg-[#fafafa]'} no-scrollbar min-w-0 flex-1 overflow-y-auto`}>
-          <div className={`mx-auto flex w-full ${(mainTab === 'runs' && !openRun) || mainTab === 'steps' ? 'max-w-[1200px]' : 'max-w-[880px]'} flex-col gap-5 px-8 py-6`}>
+          <div className={`mx-auto flex w-full ${(mainTab === 'runs' && !openRun) || mainTab === 'steps' || mainTab === 'sessions' ? 'max-w-[1200px]' : 'max-w-[880px]'} flex-col gap-5 px-8 py-6`}>
 
             {mainTab === 'steps' && (() => {
               const flashAndScroll = (id) => {
@@ -1678,28 +1674,48 @@ export default function FlowDetailPage() {
               return (
                 <div className="flex min-w-0 flex-col gap-5">
                   <div className="flex items-start gap-3 px-1">
-                    <div className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-white ring-1 ring-hairline">
-                      <img
-                        src="https://icons.duckduckgo.com/ip3/netsuite.com.ico"
-                        alt=""
-                        className="h-6 w-6 object-contain"
-                      />
-                    </div>
+                    {isCompetitor ? (
+                      <div className="flex h-10 flex-none items-center">
+                        {['linear.app', 'notion.so', 'clickup.com'].map((s, i) => (
+                          <div
+                            key={s}
+                            className="flex h-10 w-10 items-center justify-center rounded-lg bg-white ring-1 ring-hairline"
+                            style={{ marginLeft: i === 0 ? 0 : -14, zIndex: 3 - i }}
+                          >
+                            <img
+                              src={`https://icons.duckduckgo.com/ip3/${s}.ico`}
+                              alt=""
+                              className="h-6 w-6 object-contain"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-white ring-1 ring-hairline">
+                        <img
+                          src="https://icons.duckduckgo.com/ip3/netsuite.com.ico"
+                          alt=""
+                          className="h-6 w-6 object-contain"
+                        />
+                      </div>
+                    )}
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      <div className="text-[15px] font-semibold text-ink">Download vendor invoices</div>
+                      <div className="text-[15px] font-semibold text-ink">
+                        {isCompetitor ? 'Competitor page screenshots' : 'Download vendor invoices'}
+                      </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted">
-                        <span>portal.netsuite.com</span>
+                        <span>{isCompetitor ? 'linear.app, notion.so, clickup.com' : 'portal.netsuite.com'}</span>
                         <span className="text-gray-300">·</span>
                         <span className="inline-flex items-center gap-1.5">
                           <span className="flex h-[18px] w-[18px] flex-none items-center justify-center rounded-md bg-gray-100 text-[10px] font-semibold text-gray-700 ring-1 ring-gray-200">
-                            J
+                            {isCompetitor ? 'D' : 'J'}
                           </span>
-                          <span>John Miller</span>
+                          <span>{isCompetitor ? 'David Hidalgo' : 'John Miller'}</span>
                         </span>
-                        {[
-                          ['Last edited', '2 hours ago'],
-                          ['Created', 'Jun 14, 2026'],
-                        ].map(([k, v]) => (
+                        {(isCompetitor
+                          ? [['Last edited', '28 days ago'], ['Created', 'May 20, 2026']]
+                          : [['Last edited', '2 hours ago'], ['Created', 'Jun 14, 2026']]
+                        ).map(([k, v]) => (
                           <span key={k} className="inline-flex items-center gap-1.5">
                             <span className="text-gray-300">·</span>
                             <span>{k}</span>
@@ -1747,8 +1763,8 @@ export default function FlowDetailPage() {
                         {
                           id: 'sessions',
                           icon: <IcSliders size={16} />,
-                          title: 'Default Browser Session',
-                          value: "David's Browser Navigation",
+                          title: 'Browser Session',
+                          value: defaultSession ? defaultSession.name : 'No default session',
                         },
                         {
                           id: 'inputs',
@@ -2128,27 +2144,110 @@ export default function FlowDetailPage() {
               </div>
             )}
 
-            {mainTab === 'sessions' && (
-              <div className="overflow-hidden rounded-lg border border-hairline bg-white">
-                {[
-                  ['NetSuite prod session', 'Active · last used 12m ago', 'active'],
-                  ['NetSuite staging session', 'Idle · last used yesterday', 'idle'],
-                  ['NetSuite prod session (backup)', 'Expired · Jul 6', 'expired'],
-                ].map(([name, sub, state], i) => (
-                  <div key={i} className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2.5 border-b border-hairline px-4 py-3 last:border-b-0 hover:bg-gray-50">
-                    <div className={
-                      'h-2 w-2 rounded-full ' +
-                      (state === 'active' ? 'bg-emerald-500' : state === 'idle' ? 'bg-amber-400' : 'bg-gray-300')
-                    } />
-                    <div className="min-w-0">
-                      <div className="truncate text-[13px] font-medium text-ink">{name}</div>
-                      <div className="truncate text-[11.5px] text-muted">{sub}</div>
+            {mainTab === 'sessions' && (() => {
+              const site = 'netsuite.com'
+              const ACCESS_LISTS = [
+                ['David Hidalgo'],
+                ['David Hidalgo', 'Jenny Liang', 'Jacob ZY Yoon', 'German Parada', 'Shani Fargun'],
+                ['David Hidalgo', 'Ppaudel'],
+                ['David Hidalgo', 'Jenny Liang', 'German Parada'],
+              ]
+              const rows = SESSIONS.filter((s) => s.site === site).map((s, i) => ({
+                ...s,
+                owner: s.name.startsWith('Ops team') ? 'Ops team' : 'David Hidalgo',
+                usedBy: [3, 1, 2, 5, 4][i % 5],
+                access: ACCESS_LISTS[i % ACCESS_LISTS.length],
+              }))
+              return (
+                <div className="flex flex-col gap-3">
+                  <p className="text-[13px] text-muted">
+                    Sessions saved for {site}. Any of these can be picked as the default session for this recording, or injected at run time by a workflow.
+                  </p>
+                  <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                    <div className="grid grid-cols-[1.3fr_1.3fr_1fr_1fr_1fr_1fr_1fr_1.1fr_40px] items-center gap-4 [&>*]:min-w-0 rounded-t-xl border-b border-gray-200 bg-[#f2f2f2] px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
+                      <div>Session</div>
+                      <div>Connection</div>
+                      <div>Site</div>
+                      <div>Status</div>
+                      <div>Owner</div>
+                      <div>Last used</div>
+                      <div>Used by</div>
+                      <div>Access</div>
+                      <div></div>
                     </div>
-                    <div className="text-[12px] text-muted">Playwright</div>
+                    {rows.length === 0 && (
+                      <div className="px-5 py-8 text-center text-[13px] text-muted">
+                        No saved sessions for {site}.
+                      </div>
+                    )}
+                    {rows.map((s) => {
+                      const conn = CONNECTIONS.find((c) => c.id === s.connectionId)
+                      const connLabel = conn ? conn.name.replace(/\s*\(.*\)\s*$/, '') : '—'
+                      const shown = s.access.slice(0, 4)
+                      const extra = s.access.length - shown.length
+                      return (
+                        <div
+                          key={s.id}
+                          className="grid grid-cols-[1.3fr_1.3fr_1fr_1fr_1fr_1fr_1fr_1.1fr_40px] items-center gap-4 [&>*]:min-w-0 border-b border-gray-100 px-5 py-3 text-[13px] text-ink last:border-b-0 hover:bg-gray-50"
+                        >
+                          <div className="truncate">{s.name}</div>
+                          <div className="flex min-w-0 items-center gap-1.5 text-muted">
+                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-white text-orange-500 ring-1 ring-hairline">
+                              <Monitor size={10} />
+                            </span>
+                            <span className="truncate" title={connLabel}>{connLabel}</span>
+                          </div>
+                          <div className="text-muted">{s.site}</div>
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={
+                                'h-1.5 w-1.5 rounded-full ' +
+                                (s.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500')
+                              }
+                            />
+                            <span className="text-muted">{s.status === 'active' ? 'Active' : 'Expiring'}</span>
+                          </div>
+                          <div className="text-muted">{s.owner}</div>
+                          <div className="text-muted">{s.when}</div>
+                          <div className="text-muted">
+                            {s.usedBy} {s.usedBy === 1 ? 'recording' : 'recordings'}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex items-center -space-x-1">
+                              {shown.map((u) => (
+                                <div
+                                  key={u}
+                                  className="flex h-6 w-6 items-center justify-center rounded-md bg-gray-100 text-[10.5px] font-semibold text-gray-700 ring-1 ring-gray-200"
+                                  title={u}
+                                >
+                                  {u[0]}
+                                </div>
+                              ))}
+                              {extra > 0 && (
+                                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-[10px] font-semibold text-gray-600 ring-1 ring-gray-200">
+                                  +{extra}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              className="inline-flex items-center gap-1 rounded-md border border-hairline bg-white px-1.5 py-1 text-[11.5px] text-muted hover:bg-gray-50"
+                              title="Share this session"
+                            >
+                              <Plus size={11} /> Add
+                            </button>
+                          </div>
+                          <div className="flex justify-end">
+                            <button className="flex h-6 w-6 items-center justify-center rounded text-muted hover:bg-gray-100">
+                              <Kebab size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              )
+            })()}
           </div>
         </main>
 
@@ -2196,15 +2295,33 @@ export default function FlowDetailPage() {
               </SidebarSection>
               <SidebarSection
                 icon={<IcSliders size={16} />}
-                title="Default Browser Session"
+                title="Browser Session"
                 open={activeSetting === 'sessions'}
                 onToggle={() => setActiveSetting(activeSetting === 'sessions' ? null : 'sessions')}
               >
                 <div className="flex flex-col">
                   <div className="mb-2 text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
-                    Browser session credentials
+                    Default session
                   </div>
-                  <ConnectionSelect initialSelectedId="david-bn-2" />
+                  <SessionSelect
+                    site="netsuite.com"
+                    initialSelectedId={defaultSessionId}
+                    onChange={setDefaultSessionId}
+                  />
+                  <div className="mt-4 mb-2 flex items-center gap-1.5">
+                    <span className="text-[13px] text-ink underline decoration-gray-300 underline-offset-[3px]">
+                      Default connection
+                    </span>
+                    {defaultSessionId && (
+                      <span className="text-[11.5px] text-muted">· locked to session</span>
+                    )}
+                  </div>
+                  <ConnectionSelect
+                    site="netsuite.com"
+                    value={defaultConnectionId}
+                    onChange={(id) => { setDefaultConnectionId(id); setDefaultConnectionTouched(true) }}
+                    disabled={!!defaultSessionId}
+                  />
                   <div className="mt-2 text-[12px] leading-[1.5] text-muted">
                     <a className="underline decoration-gray-300 underline-offset-[3px]" href="#">
                       Your credentials are encrypted and can be removed at any time
@@ -2214,20 +2331,6 @@ export default function FlowDetailPage() {
                       here
                     </a>
                     .
-                  </div>
-                  <div className="mt-4 flex flex-col gap-1.5 border-t border-hairline pt-3 text-[12.5px] text-ink">
-                    {[
-                      ['Cookies', 'Accepted'],
-                      ['Session token', 'NetSuite prod · active'],
-                      ['Last authenticated', '2 hours ago'],
-                      ['Expires', 'In 6 days'],
-                      ['User agent', 'Chrome 128 · macOS'],
-                    ].map(([k, v]) => (
-                      <div key={k} className="flex items-baseline justify-between gap-3">
-                        <span className="text-muted">{k}</span>
-                        <span className="truncate text-right">{v}</span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </SidebarSection>

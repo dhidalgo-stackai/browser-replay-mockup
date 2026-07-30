@@ -119,13 +119,66 @@ function Row({ c }) {
   )
 }
 
-export default function ConnectionsPage() {
+export function ConnectionsTable({ connections = CONNECTIONS }) {
   const [q, setQ] = useState('')
 
-  const filtered = CONNECTIONS.filter(c =>
+  const filtered = connections.filter(c =>
     !q || c.name.toLowerCase().includes(q.toLowerCase()) || c.provider.toLowerCase().includes(q.toLowerCase())
   )
 
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted">
+            <Search size={14} />
+          </span>
+          <input
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            placeholder="Search connections"
+            className="w-full rounded-lg border border-hairline bg-white py-1.5 pl-8 pr-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
+          />
+        </div>
+        <button className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-white px-3 py-1.5 text-[12.5px] text-ink hover:bg-gray-50">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18M6 12h12M10 18h4" />
+          </svg>
+          Filters
+        </button>
+      </div>
+
+      <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="grid grid-cols-[36px_1.1fr_2fr_1.1fr_1fr_1.1fr_90px_40px] items-center gap-4 rounded-t-xl border-b border-gray-200 bg-[#f2f2f2] px-4 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
+          <div><input type="checkbox" className="h-4 w-4 rounded border-gray-300" /></div>
+          <div>Provider</div>
+          <div>Connection Name</div>
+          <div><SortHeader>Created by</SortHeader></div>
+          <div><SortHeader>Created at</SortHeader></div>
+          <div>General Access</div>
+          <div>Test</div>
+          <div />
+        </div>
+        {filtered.map((c, i) => <Row key={i} c={c} />)}
+        <div className="flex items-center justify-between rounded-b-xl border-t border-gray-200 bg-[#f2f2f2] px-4 py-2.5">
+          <div className="flex items-center gap-1.5">
+            <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">‹ Prev</button>
+            <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">Next ›</button>
+          </div>
+          <div className="flex items-center gap-1.5 text-[12px]">
+            <span className="rounded-md bg-gray-100 px-2 py-1 font-medium text-ink">15 rows</span>
+            <span className="px-2 py-1 text-muted">30</span>
+            <span className="px-2 py-1 text-muted">100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export const BROWSER_NAVIGATION_CONNECTIONS = CONNECTIONS.filter(c => c.provider === 'Browser Navigation')
+
+export default function ConnectionsPage() {
   return (
     <div className="flex h-screen overflow-hidden bg-white">
       <LeftRail />
@@ -144,51 +197,8 @@ export default function ConnectionsPage() {
         </div>
 
         <main className="min-w-0 flex-1 overflow-y-auto bg-[#fafafa]">
-          <div className="flex w-full flex-col gap-4 px-8 py-6">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted">
-                  <Search size={14} />
-                </span>
-                <input
-                  value={q}
-                  onChange={e => setQ(e.target.value)}
-                  placeholder="Search connections"
-                  className="w-full rounded-lg border border-hairline bg-white py-1.5 pl-8 pr-3 text-[13px] text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-gray-300"
-                />
-              </div>
-              <button className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-white px-3 py-1.5 text-[12.5px] text-ink hover:bg-gray-50">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 6h18M6 12h12M10 18h4" />
-                </svg>
-                Filters
-              </button>
-            </div>
-
-            <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-              <div className="grid grid-cols-[36px_1.1fr_2fr_1.1fr_1fr_1.1fr_90px_40px] items-center gap-4 rounded-t-xl border-b border-gray-200 bg-[#f2f2f2] px-4 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
-                <div><input type="checkbox" className="h-4 w-4 rounded border-gray-300" /></div>
-                <div>Provider</div>
-                <div>Connection Name</div>
-                <div><SortHeader>Created by</SortHeader></div>
-                <div><SortHeader>Created at</SortHeader></div>
-                <div>General Access</div>
-                <div>Test</div>
-                <div />
-              </div>
-              {filtered.map((c, i) => <Row key={i} c={c} />)}
-              <div className="flex items-center justify-between rounded-b-xl border-t border-gray-200 bg-[#f2f2f2] px-4 py-2.5">
-                <div className="flex items-center gap-1.5">
-                  <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">‹ Prev</button>
-                  <button className="rounded-md border border-hairline bg-white px-2.5 py-1 text-[12px] text-muted hover:bg-gray-50">Next ›</button>
-                </div>
-                <div className="flex items-center gap-1.5 text-[12px]">
-                  <span className="rounded-md bg-gray-100 px-2 py-1 font-medium text-ink">15 rows</span>
-                  <span className="px-2 py-1 text-muted">30</span>
-                  <span className="px-2 py-1 text-muted">100</span>
-                </div>
-              </div>
-            </div>
+          <div className="flex w-full flex-col px-8 py-6">
+            <ConnectionsTable />
           </div>
         </main>
       </div>

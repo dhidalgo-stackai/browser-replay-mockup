@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { StackAILogo, X, ChevronDown, ChevronUp, InfoCircle, ListView, Play, Cursor, Globe, ExternalLink } from './icons.jsx'
+import { StackAILogo, X, ChevronDown, ChevronUp, InfoCircle, ListView, Play, Cursor, Globe, ExternalLink, ShareNodes } from './icons.jsx'
 
 function TrashIcon({ size = 14 }) {
   return (
@@ -210,13 +210,59 @@ function extractInputsFromSteps(steps) {
   return inputs
 }
 
-function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
+function hasCredentialStep(steps) {
+  return steps.some((s) => /^Type "[^"]*" into "(?:password|passcode|pin)"/i.test(s))
+}
+
+function credentialSummary(steps) {
+  let username = null
+  let site = null
+  for (let i = 0; i < steps.length; i++) {
+    const s = steps[i]
+    const nav = s.match(/^Navigate to (https?:\/\/[^\s]+)/i)
+    if (nav && !site) {
+      try { site = new URL(nav[1]).hostname.replace(/^www\./, '') } catch {}
+    }
+    const pw = s.match(/^Type "[^"]*" into "(?:password|passcode|pin)"/i)
+    if (pw) {
+      const prev = steps[i - 1] || ''
+      const m = prev.match(/^Type "([^"]+)" into "(?:username|user|email|user\s*id|login)"/i)
+      if (m) username = m[1]
+    }
+  }
+  return { site: site || 'this site', username }
+}
+
+function defaultSessionName(steps) {
+  for (const s of steps) {
+    const nav = s.match(/^Navigate to (https?:\/\/[^\s]+)/i)
+    if (nav) {
+      try {
+        const host = new URL(nav[1]).hostname.replace(/^www\./, '')
+        const d = new Date()
+        const mo = d.toLocaleString('en-US', { month: 'short' })
+        return `${host} — ${mo} ${d.getDate()}`
+      } catch {}
+    }
+  }
+  return 'New browser session'
+}
+
+function SaveWorkflowModal({ onClose, onSave, stepCount, steps = [] }) {
   const [name, setName] = useState('Google Search')
   const [description, setDescription] = useState(
     'Navigates to Google and searches for "stack ai".',
   )
-  const [download, setDownload] = useState(false)
-  const [saveCreds, setSaveCreds] = useState(true)
+  const buildSessionName = (n) => {
+    const d = new Date()
+    const mo = d.toLocaleString('en-US', { month: 'short' })
+    return `David - ${n} - ${mo} ${d.getDate()}`
+  }
+  const [sessionName, setSessionName] = useState(() => buildSessionName('Google Search'))
+  const [sessionTouched, setSessionTouched] = useState(false)
+  useEffect(() => { if (!sessionTouched) setSessionName(buildSessionName(name)) }, [name, sessionTouched])
+  const hasCreds = hasCredentialStep(steps)
+  const creds = hasCreds ? credentialSummary(steps) : null
 
   return (
     <div
@@ -251,77 +297,29 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             placeholder="Describe what this workflow does..."
-            className="mb-3 w-full resize-none rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12.5px] text-ink outline-none placeholder:text-gray-400 focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
+            className="mb-2.5 w-full resize-none rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12.5px] text-ink outline-none placeholder:text-gray-400 focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
           />
 
-          <label
-            onClick={() => setDownload((d) => !d)}
-            className="flex cursor-pointer items-center gap-2 text-[12px] text-muted"
-          >
-            <span
-              className={
-                'flex h-[14px] w-[14px] flex-shrink-0 items-center justify-center rounded-[3px] border ' +
-                (download
-                  ? 'border-ink bg-ink text-white'
-                  : 'border-gray-300 bg-white text-transparent')
-              }
-            >
-              <CheckIcon size={9} />
-            </span>
-            Also download a copy
-            <span className="group relative inline-flex items-center">
-              <span
-                className="flex h-3.5 w-3.5 cursor-help items-center justify-center rounded-full border border-gray-300 text-[9px] font-semibold text-gray-400"
-                aria-label="What does download a copy mean?"
-              >
-                i
-              </span>
-              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-normal text-ink shadow-lg group-hover:block">
-                Saves a .json file of this recording to your device
-              </span>
-            </span>
-          </label>
+          <label className="mb-1 block text-[11.5px] text-muted">Browser Session</label>
+          <input
+            value={sessionName}
+            onChange={(e) => { setSessionTouched(true); setSessionName(e.target.value) }}
+            placeholder="Name"
+            className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12.5px] text-ink outline-none placeholder:text-gray-400 focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
+          />
 
-          <label
-            onClick={() => setSaveCreds((d) => !d)}
-            className="mt-2 flex cursor-pointer items-center gap-2 text-[12px] text-muted"
-          >
-            <span
-              className={
-                'flex h-[14px] w-[14px] flex-shrink-0 items-center justify-center rounded-[3px] border ' +
-                (saveCreds
-                  ? 'border-ink bg-ink text-white'
-                  : 'border-gray-300 bg-white text-transparent')
-              }
-            >
-              <CheckIcon size={9} />
-            </span>
-            Save credentials to Credentials page
-            <span className="group relative inline-flex items-center">
-              <span
-                className="flex h-3.5 w-3.5 cursor-help items-center justify-center rounded-full border border-gray-300 text-[9px] font-semibold text-gray-400"
-                aria-label="What does saving credentials mean?"
-              >
-                i
+          {hasCreds && (
+            <div className="mt-3.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2 text-[12.5px] text-ink">
+              <span className="text-gray-500"><ShareNodes size={14} /></span>
+              <span className="flex-1">Credentials saved as a connection</span>
+              <span className="group relative inline-flex items-center">
+                <span className="flex h-3.5 w-3.5 cursor-help items-center justify-center rounded-full border border-gray-300 text-[9px] font-semibold text-gray-400">i</span>
+                <span className="pointer-events-none absolute bottom-full right-0 z-10 mb-1.5 hidden w-[220px] rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-normal leading-snug text-ink shadow-lg group-hover:block">
+                  {creds.site}{creds.username ? ` · ${creds.username}` : ''} · Password steps will be replaced by this connection on replay.
+                </span>
               </span>
-              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-normal text-ink shadow-lg group-hover:block">
-                Stores the username and password securely for reuse across flows
-              </span>
-            </span>
-          </label>
-
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/60 p-3">
-            <div className="min-w-0 flex-1 text-[12.5px] font-medium text-ink">
-              {stepCount} {stepCount === 1 ? 'Step' : 'Steps'}
             </div>
-            <button
-              onClick={onEditTab}
-              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11.5px] font-medium text-ink hover:bg-gray-50"
-            >
-              Review &amp; edit steps
-              <span className="text-gray-500"><ExternalLink size={11} /></span>
-            </button>
-          </div>
+          )}
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50 px-5 py-3">
           <button
@@ -331,7 +329,7 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, onEditTab }) {
             Cancel
           </button>
           <button
-            onClick={() => onSave({ name, description, download, saveCreds })}
+            onClick={() => onSave({ name, description, sessionName, saveCreds: hasCreds })}
             disabled={!name.trim()}
             className="cursor-pointer rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -352,7 +350,7 @@ function RecordingTimer() {
   return <span className="tabular-nums">{formatTime(seconds)}</span>
 }
 
-function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopReplay, onDelete, timerKey, stepCount, replaying, onEditTab }) {
+function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopReplay, onDelete, timerKey, stepCount, replaying, hasCreds }) {
   let topRow
   if (phase === 'idle') {
     topRow = (
@@ -415,13 +413,9 @@ function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopRepl
     <div className="flex flex-col gap-2">
       {topRow}
       {phase === 'finished' ? (
-        <button
-          onClick={onEditTab}
-          className="flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 text-[12.5px] font-medium text-gray-600 hover:text-ink"
-        >
-          Edit steps, inputs &amp; connections
-          <ExternalLinkIcon size={12} />
-        </button>
+        <div className="flex h-8 w-full items-center justify-center text-[11.5px] text-muted">
+          {stepCount} {stepCount === 1 ? 'step' : 'steps'} · 1 session{hasCreds ? ' · 1 connection' : ''}
+        </div>
       ) : phase === 'recording' ? (
         <button
           className="flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-[12.5px] font-medium text-ink hover:bg-gray-50"
@@ -456,6 +450,9 @@ export default function WorkflowRecorderPanel({
 }) {
   const [saveOpen, setSaveOpen] = useState(false)
   const [confirmEditOpen, setConfirmEditOpen] = useState(false)
+  const [postSaveOpen, setPostSaveOpen] = useState(false)
+  const [savedName, setSavedName] = useState('')
+  const [savedInputs, setSavedInputs] = useState([])
   const [recordingId, setRecordingId] = useState(0)
   const recording = phase === 'recording'
   const finished = phase === 'finished'
@@ -544,6 +541,7 @@ export default function WorkflowRecorderPanel({
           phase={phase}
           timerKey={recordingId}
           stepCount={steps.length}
+          hasCreds={hasCredentialStep(steps)}
           onStart={() => {
             setRecordingId((n) => n + 1)
             onStart && onStart()
@@ -554,7 +552,6 @@ export default function WorkflowRecorderPanel({
           onStopReplay={onStopReplay}
           replaying={replaying}
           onDelete={onDelete}
-          onEditTab={openEditTab}
         />
       </div>
 
@@ -562,14 +559,54 @@ export default function WorkflowRecorderPanel({
         <SaveWorkflowModal
           onClose={() => setSaveOpen(false)}
           stepCount={steps.length}
-          onEditTab={openEditTab}
+          steps={steps}
           onSave={({ name }) => {
             setSaveOpen(false)
-            const inputs = extractInputsFromSteps(steps)
-            onDelete && onDelete()
-            if (onSaveRecording) onSaveRecording({ name, inputs })
+            setSavedName(name)
+            setSavedInputs(extractInputsFromSteps(steps))
+            setPostSaveOpen(true)
           }}
         />
+      )}
+
+      {postSaveOpen && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setPostSaveOpen(false) }}
+          className="absolute inset-0 z-30 flex items-center justify-center bg-black/20 backdrop-blur-sm px-4"
+        >
+          <div className="anim-modal w-full overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+            <div className="border-b border-hairline px-5 py-3.5 text-[14px] font-semibold text-ink">
+              Recording saved
+            </div>
+            <div className="px-5 py-4 text-[12.5px] leading-relaxed text-muted">
+              Edit steps, inputs, and connections anytime on the recording page.
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50 px-4 py-3">
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}${window.location.pathname}#/browser-automation/recording`
+                  window.open(url, '_blank', 'noopener,noreferrer')
+                  setPostSaveOpen(false)
+                  onDelete && onDelete()
+                  if (onSaveRecording) onSaveRecording({ name: savedName, inputs: savedInputs })
+                }}
+                className="cursor-pointer rounded-lg px-3 py-2 text-[12.5px] font-medium text-muted hover:bg-gray-100"
+              >
+                Edit steps
+              </button>
+              <button
+                onClick={() => {
+                  setPostSaveOpen(false)
+                  onDelete && onDelete()
+                  if (onSaveRecording) onSaveRecording({ name: savedName, inputs: savedInputs })
+                }}
+                className="cursor-pointer rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-medium text-white hover:opacity-90"
+              >
+                Stay in workflow
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {confirmEditOpen && (

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import LeftRail from './LeftRail.jsx'
-import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile, InfoCircle, Folder, Monitor } from './icons.jsx'
+import { Search, Plus, Upload, Kebab, ChevronDown, X, Braces, PageFile, InfoCircle, Folder, Monitor, Grid, Play } from './icons.jsx'
 import Tooltip from './Tooltip.jsx'
 import SandboxModal from './SandboxModal.jsx'
+import { SESSIONS } from './Inspector.jsx'
 
 function EyeIcon({ size = 14, off = false }) {
   return (
@@ -124,6 +125,123 @@ function CredentialRow({ c, onOpenAccess }) {
   )
 }
 
+function SessionRow({ s }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+  useEffect(() => {
+    if (!menuOpen) return
+    const onDoc = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [menuOpen])
+  return (
+    <div className="grid grid-cols-[1.3fr_1.3fr_1fr_1fr_1fr_1fr_1fr_1.1fr_40px] items-center gap-4 [&>*]:min-w-0 border-b border-gray-100 px-5 py-3 text-[13px] text-ink last:border-b-0 hover:bg-gray-50">
+      <div className="truncate">{s.name}</div>
+      <div className="flex min-w-0 items-center gap-1.5 text-muted">
+        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-white text-orange-500 ring-1 ring-hairline">
+          <Monitor size={10} />
+        </span>
+        <span className="truncate">{s.connectionLabel}</span>
+      </div>
+      <div className="text-muted">{s.site}</div>
+      <div className="flex items-center gap-1.5">
+        <span
+          className={
+            'h-1.5 w-1.5 rounded-full ' +
+            (s.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500')
+          }
+        />
+        <span className="text-muted">
+          {s.status === 'active' ? 'Active' : 'Expiring'}
+        </span>
+      </div>
+      <div className="text-muted">{s.owner}</div>
+      <div className="text-muted">{s.when}</div>
+      <div className="text-muted">
+        {s.usedBy} {s.usedBy === 1 ? 'recording' : 'recordings'}
+      </div>
+      <div className="flex items-center gap-1.5">
+        <AccessStack users={s.access} onClick={() => {}} />
+        <button
+          className="inline-flex items-center gap-1 rounded-md border border-hairline bg-white px-1.5 py-1 text-[11.5px] text-muted hover:bg-gray-50"
+          title="Share this session"
+        >
+          <Plus size={11} /> Add
+        </button>
+      </div>
+      <div className="relative flex justify-end" ref={menuRef}>
+        <button
+          onClick={() => setMenuOpen((v) => !v)}
+          className="flex h-6 w-6 items-center justify-center rounded text-muted hover:bg-gray-100"
+        >
+          <Kebab size={14} />
+        </button>
+        {menuOpen && (
+          <div className="absolute right-0 top-7 z-20 w-48 rounded-md border border-hairline bg-white py-1 text-[12.5px] text-ink shadow-lg">
+            <button className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-gray-50">
+              Edit browser session
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const CONNECTION_GROUPS = [
+  { id: 'david-bn-1', label: "David's browser connection · Salesforce" },
+  { id: 'david-bn-2', label: "David's browser connection · Zendesk, NetSuite" },
+]
+
+function SessionsView() {
+  const ACCESS_LISTS = [
+    ['David Hidalgo'],
+    ['David Hidalgo', 'Jenny Liang', 'Jacob ZY Yoon', 'German Parada', 'Shani Fargun'],
+    ['David Hidalgo'],
+    ['David Hidalgo', 'Ppaudel'],
+    ['David Hidalgo', 'Jenny Liang', 'German Parada'],
+  ]
+  const USED_BY_LISTS = [
+    ['Download vendor invoices', 'Refresh HubSpot deals', 'Sync Zendesk tickets'],
+    ['Post weekly ops report'],
+    ['Update pricing sheet on Shopify', 'Competitor page screenshots'],
+    ['Download vendor invoices', 'Extract Salesforce lead list', 'Renew SSL certificate', 'Refresh HubSpot deals', 'test recording'],
+    ['Sync Zendesk tickets', 'Post weekly ops report', 'Renew SSL certificate', 'Refresh HubSpot deals'],
+  ]
+  const rows = SESSIONS.map((s, i) => ({
+    ...s,
+    owner: s.name.startsWith('Ops team') ? 'Ops team' : 'David Hidalgo',
+    usedByList: USED_BY_LISTS[i % USED_BY_LISTS.length],
+    usedBy: USED_BY_LISTS[i % USED_BY_LISTS.length].length,
+    access: ACCESS_LISTS[i % ACCESS_LISTS.length],
+  }))
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-[13px] text-muted">
+        Saved logins available to your recordings. A site can have multiple sessions — for example, one per teammate or a shared ops account.
+      </p>
+      <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="grid grid-cols-[1.3fr_1.3fr_1fr_1fr_1fr_1fr_1fr_1.1fr_40px] items-center gap-4 [&>*]:min-w-0 rounded-t-xl border-b border-gray-200 bg-[#f2f2f2] px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.04em] text-muted">
+          <div>Session</div>
+          <div>Connection</div>
+          <div>Site</div>
+          <div>Status</div>
+          <div>Owner</div>
+          <div>Last used</div>
+          <div>Used by</div>
+          <div>Access</div>
+          <div></div>
+        </div>
+        {rows.map((s) => {
+          const g = CONNECTION_GROUPS.find((c) => c.id === s.connectionId)
+          const label = (g?.label || '—').split(' · ')[0]
+          return <SessionRow key={s.id} s={{ ...s, connectionLabel: label }} />
+        })}
+      </div>
+    </div>
+  )
+}
+
 function CredentialsView({ onOpenAccess }) {
   return (
     <div className="flex flex-col gap-4">
@@ -165,6 +283,7 @@ const RECORDINGS = [
     desc: 'Sign in to NetSuite vendor portal and download all open invoices for AP reconciliation. Runs on a weekly schedule.',
     updated: 'July 22, 2026',
     site: 'portal.netsuite.com',
+    steps: 14,
   },
   {
     name: 'Sync Zendesk tickets',
@@ -172,6 +291,7 @@ const RECORDINGS = [
     desc: 'Scrapes new Zendesk tickets tagged "billing" and pushes them into the CRM as follow-up tasks.',
     updated: 'July 14, 2026',
     site: 'company.zendesk.com',
+    steps: 9,
   },
   {
     name: 'Post weekly ops report',
@@ -179,6 +299,7 @@ const RECORDINGS = [
     desc: 'Logs into Notion, opens the ops dashboard, and posts a snapshot into the #weekly-ops Slack channel.',
     updated: 'July 11, 2026',
     site: 'notion.so',
+    steps: 11,
   },
   {
     name: 'Update pricing sheet on Shopify',
@@ -186,13 +307,16 @@ const RECORDINGS = [
     desc: 'Adjusts SKU pricing on the Shopify admin from a source spreadsheet. Verifies each change before saving.',
     updated: 'July 6, 2026',
     site: 'admin.shopify.com',
+    steps: 22,
   },
   {
     name: 'Competitor page screenshots',
     author: 'David Hidalgo',
     desc: 'Visits a rotating list of competitor product pages and archives full-page screenshots for weekly review.',
     updated: 'July 2, 2026',
-    site: 'various',
+    site: 'linear.app',
+    sites: ['linear.app', 'notion.so', 'clickup.com'],
+    steps: 18,
   },
   {
     name: 'Renew SSL certificate',
@@ -201,6 +325,7 @@ const RECORDINGS = [
     desc: 'Signs into the registrar, walks the renewal flow, and captures the new expiration date into the runbook.',
     updated: 'June 27, 2026',
     site: 'registrar.example',
+    steps: 7,
   },
   {
     name: 'Refresh HubSpot deals',
@@ -208,6 +333,7 @@ const RECORDINGS = [
     desc: 'Marks stalled deals as "needs review" and reassigns based on last-touch date.',
     updated: 'June 21, 2026',
     site: 'app.hubspot.com',
+    steps: 13,
   },
   {
     name: 'test recording',
@@ -215,6 +341,7 @@ const RECORDINGS = [
     desc: 'quick smoke test — do not schedule',
     updated: 'June 30, 2026',
     site: '—',
+    steps: 3,
   },
 ]
 
@@ -269,42 +396,87 @@ function SiteLogo({ site, name }) {
   )
 }
 
+function relativeDays(dateStr) {
+  const then = new Date(dateStr)
+  if (isNaN(then)) return dateStr
+  const now = new Date('2026-07-30')
+  const days = Math.max(0, Math.round((now - then) / 86400000))
+  if (days === 0) return 'today'
+  if (days === 1) return '1 day ago'
+  if (days < 30) return `${days} days ago`
+  const months = Math.round(days / 30)
+  if (months === 1) return '1 month ago'
+  return `${months} months ago`
+}
+
+function MultiSiteLogo({ sites }) {
+  return (
+    <Tooltip label={sites.join('\n')}>
+      <div className="flex h-7 flex-shrink-0 items-center">
+        {sites.map((s, i) => (
+          <div
+            key={s}
+            className="flex h-7 w-7 items-center justify-center rounded-md bg-white ring-1 ring-hairline"
+            style={{ marginLeft: i === 0 ? 0 : -10, zIndex: sites.length - i }}
+          >
+            <img
+              src={`https://icons.duckduckgo.com/ip3/${s}.ico`}
+              alt=""
+              className="h-4 w-4 object-contain"
+            />
+          </div>
+        ))}
+      </div>
+    </Tooltip>
+  )
+}
+
 function Card({ r }) {
-  const initials = r.author.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+  const initials = (r.author.trim()[0] || '?').toUpperCase()
   return (
     <a
-      href={r.mode === 'agent' ? '#/browser-automation/agent' : '#/browser-automation/recording'}
+      href={
+        r.mode === 'agent'
+          ? '#/browser-automation/agent'
+          : r.sites
+            ? '#/browser-automation/recording?r=competitor'
+            : '#/browser-automation/recording'
+      }
       className="group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-sm transition"
     >
       <div className="flex items-start justify-between gap-2 px-4 pt-3.5">
-        <div className="flex min-w-0 items-start gap-2.5">
-          <SiteLogo site={r.site} name={r.name} />
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="text-[14px] font-semibold text-ink">{r.name}</div>
-              {r.mode === 'agent' && (
-                <span className="flex-shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-medium ring-1 bg-violet-50 text-violet-700 ring-violet-200">
-                  AI Agent
-                </span>
-              )}
-            </div>
-            <div className="mt-0.5 truncate text-[12px] text-muted">{r.site}</div>
-          </div>
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="truncate text-[14px] font-semibold text-ink">{r.name}</div>
+          {r.mode === 'agent' && (
+            <span className="flex-shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-medium ring-1 bg-violet-50 text-violet-700 ring-violet-200">
+              AI Agent
+            </span>
+          )}
         </div>
         <button className="text-muted opacity-0 group-hover:opacity-100" onClick={e => e.preventDefault()}>
           <Kebab size={16} />
         </button>
       </div>
-      <div className="px-4 pt-2.5">
-        <p className="text-[12.5px] leading-[1.5] text-gray-600 line-clamp-3 min-h-[54px]">{r.desc}</p>
+      <div className="truncate px-4 pt-0.5 pb-14 text-[13px] text-muted">
+        {r.sites ? r.sites.join(', ') : r.site}
       </div>
-      <div className="mx-4 mt-3 border-t border-hairline" />
-      <div className="flex items-center justify-between gap-2 px-4 py-2.5">
+      <div className="flex items-center justify-between gap-2 px-4 pt-3 pb-2.5">
         <div className="flex min-w-0 items-center gap-1.5">
-          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[5px] bg-gray-100 text-[10px] font-semibold text-gray-600">{initials}</div>
-          <div className="truncate text-[11.5px] text-muted">{r.author}</div>
+          {r.sites ? (
+            <MultiSiteLogo sites={r.sites} />
+          ) : (
+            <SiteLogo site={r.site} name={r.name} />
+          )}
         </div>
-        <div className="flex-shrink-0 text-[11.5px] text-muted">Updated on {r.updated}</div>
+        <div className="flex flex-shrink-0 items-center">
+          {r.steps != null && (
+            <div className="mr-3 text-[11.5px] text-muted">{r.steps} steps</div>
+          )}
+          <Tooltip label={r.author}>
+            <div className="mr-2.5 flex h-6 w-6 items-center justify-center rounded-md bg-gray-100 text-[11px] font-semibold text-gray-600 ring-1 ring-gray-200">{initials}</div>
+          </Tooltip>
+          <div className="text-[11.5px] text-muted">{relativeDays(r.updated)}</div>
+        </div>
       </div>
     </a>
   )
@@ -592,19 +764,21 @@ function useHashSubroute() {
     return () => window.removeEventListener('hashchange', onChange)
   }, [])
   const path = hash.replace(/^#/, '')
-  if (path.startsWith('/browser-automation/credentials')) return 'credentials'
+  if (path.startsWith('/browser-automation/sessions')) return 'sessions'
+  if (path.startsWith('/browser-automation/connections')) return 'sessions'
+  if (path.startsWith('/browser-automation/credentials')) return 'sessions'
   if (path.startsWith('/browser-automation/browser-recordings')) return 'browser-recordings'
   return 'recordings'
 }
 
 const TABS = [
-  ['recordings', 'Browser recordings', '/browser-automation'],
-  ['credentials', 'Credentials', '/browser-automation/credentials'],
+  ['recordings', 'Recordings', '/browser-automation'],
+  ['sessions', 'Sessions', '/browser-automation/sessions'],
 ]
 
 function PageTabs({ active }) {
   return (
-    <div className="inline-flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5">
+    <div className="inline-flex w-fit self-start items-center gap-0.5 rounded-lg bg-gray-100 p-0.5">
       {TABS.map(([id, label, href]) => (
         <a
           key={id}
@@ -623,13 +797,102 @@ function PageTabs({ active }) {
   )
 }
 
+function NewRecordingButton({ onOpen }) {
+  const [open, setOpen] = useState(false)
+  const [subOpen, setSubOpen] = useState(false)
+  const [subPos, setSubPos] = useState({ top: 0, left: 0 })
+  const ref = useRef(null)
+  const subTriggerRef = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setSubOpen(false) } }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+  useEffect(() => {
+    if (!subOpen || !subTriggerRef.current) return
+    const r = subTriggerRef.current.getBoundingClientRect()
+    const width = 260
+    setSubPos({ top: r.top, left: Math.max(8, r.left - width - 4) })
+  }, [subOpen])
+  const pick = (session) => {
+    setOpen(false)
+    setSubOpen(false)
+    onOpen(session)
+  }
+  return (
+    <div ref={ref} className="relative inline-flex">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
+      >
+        <Plus size={14} sw={2.2} /> New recording
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-[280px] overflow-visible rounded-lg border border-hairline bg-white py-1 shadow-lg">
+          <button
+            onClick={() => pick(null)}
+            className="flex w-full items-center px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
+          >
+            Start with a new browser session
+          </button>
+          <div
+            ref={subTriggerRef}
+            onMouseEnter={() => setSubOpen(true)}
+            onMouseLeave={() => setSubOpen(false)}
+          >
+            <button className="flex w-full items-center justify-between gap-2 whitespace-nowrap px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50">
+              <span>Start from existing browser session</span>
+            </button>
+            {subOpen && (
+              <div
+                onMouseEnter={() => setSubOpen(true)}
+                onMouseLeave={() => setSubOpen(false)}
+                style={{ position: 'fixed', top: subPos.top, left: subPos.left, width: 260 }}
+                className="z-[60] rounded-lg border border-hairline bg-white py-1 shadow-lg"
+              >
+                {SESSIONS.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => pick(s)}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
+                  >
+                    <span className={'h-1.5 w-1.5 flex-shrink-0 rounded-full ' + (s.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500')} />
+                    <span className="min-w-0 truncate">{s.name}</span>
+                  </button>
+                ))}
+                <div className="my-1 border-t border-hairline" />
+                <a
+                  href="#/browser-automation/sessions"
+                  onClick={() => { setOpen(false); setSubOpen(false) }}
+                  className="flex w-full items-center px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
+                >
+                  View all sessions
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function BrowserAutomationPage() {
   const [filter, setFilter] = useState('all')
   const [q, setQ] = useState('')
   const [importOpen, setImportOpen] = useState(false)
   const [sandboxOpen, setSandboxOpen] = useState(false)
+  const [sandboxSession, setSandboxSession] = useState(null)
   const [credentialOpen, setCredentialOpen] = useState(false)
+  const [newSessionOpen, setNewSessionOpen] = useState(false)
   const active = useHashSubroute()
+  useEffect(() => {
+    if (!newSessionOpen) return
+    const onDoc = (e) => { if (!e.target.closest('[data-new-session-menu]')) setNewSessionOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [newSessionOpen])
 
   const filtered = RECORDINGS.filter(r => {
     if (filter === 'org' && !r.org) return false
@@ -643,7 +906,7 @@ export default function BrowserAutomationPage() {
       <LeftRail />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-hairline bg-[#fafafa] px-3.5 py-2.5">
+        <div className="relative flex h-[49px] flex-shrink-0 items-center gap-3 border-b border-hairline bg-[#fafafa] px-3.5">
           <div className="flex items-center gap-1.5 text-[14px] text-muted">
             <span className="opacity-60"><Monitor size={16} /></span>
             <span className="font-medium text-ink">Browser automation</span>
@@ -657,27 +920,51 @@ export default function BrowserAutomationPage() {
                 >
                   <Upload size={14} /> Import
                 </button>
-                <button
-                  onClick={() => setSandboxOpen(true)}
-                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
-                >
-                  <Plus size={14} sw={2.2} /> New recording
-                </button>
+                <NewRecordingButton
+                  onOpen={(session) => { setSandboxSession(session); setSandboxOpen(true) }}
+                />
               </>
             )}
-            {active === 'credentials' && (
-              <button
-                onClick={() => setCredentialOpen(true)}
-                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
-              >
-                <Plus size={14} sw={2.2} /> New Credential
-              </button>
+            {active === 'sessions' && (
+              <div className="relative inline-flex" data-new-session-menu>
+                <button
+                  onClick={() => setNewSessionOpen((v) => !v)}
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
+                >
+                  <Plus size={14} sw={2.2} /> New session
+                </button>
+                {newSessionOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-1 w-[280px] overflow-visible rounded-lg border border-hairline bg-white py-1 shadow-lg">
+                    <div className="px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-muted">Add to connection</div>
+                    {CONNECTION_GROUPS.map((g) => (
+                      <button
+                        key={g.id}
+                        onClick={() => { setNewSessionOpen(false); setSandboxSession(null); setSandboxOpen(true) }}
+                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
+                      >
+                        <span className="flex h-4 w-4 items-center justify-center rounded bg-white text-orange-500 ring-1 ring-hairline">
+                          <Monitor size={10} />
+                        </span>
+                        <span className="min-w-0 truncate">{g.label}</span>
+                      </button>
+                    ))}
+                    <div className="my-1 border-t border-hairline" />
+                    <button
+                      onClick={() => { setNewSessionOpen(false); setCredentialOpen(true) }}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
+                    >
+                      <Plus size={12} sw={2.2} /> New browser connection
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
 
         <main className="min-w-0 flex-1 overflow-y-auto bg-[#fafafa]">
           <div className="flex w-full flex-col gap-5 px-8 py-6">
+            <PageTabs active={active} />
             {active === 'recordings' && (
               <>
                 <div className="flex items-center gap-3">
@@ -707,14 +994,14 @@ export default function BrowserAutomationPage() {
               </div>
             )}
 
-            {active === 'credentials' && <CredentialsView onOpenAccess={() => setCredentialOpen(true)} />}
+            {active === 'sessions' && <SessionsView />}
           </div>
         </main>
       </div>
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
       {credentialOpen && <NewCredentialModal onClose={() => setCredentialOpen(false)} />}
-      {sandboxOpen && <SandboxModal onClose={() => setSandboxOpen(false)} onSaveRecording={() => setSandboxOpen(false)} />}
+      {sandboxOpen && <SandboxModal session={sandboxSession} onClose={() => setSandboxOpen(false)} onSaveRecording={() => setSandboxOpen(false)} />}
     </div>
   )
 }

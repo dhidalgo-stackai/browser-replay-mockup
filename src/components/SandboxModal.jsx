@@ -77,7 +77,7 @@ function extractUrl(step) {
   return m ? m[0] : step
 }
 
-export default function SandboxModal({ onClose, onSaveRecording }) {
+export default function SandboxModal({ onClose, onSaveRecording, session = null }) {
   const [recorderOpen, setRecorderOpen] = useState(false)
 
   // Recording state (lifted from panel)
@@ -220,7 +220,12 @@ export default function SandboxModal({ onClose, onSaveRecording }) {
             <span className="text-muted">
               <Globe size={18} />
             </span>
-            Browser Navigation Sandbox
+            Browser Navigation Recorder
+          </div>
+          <div className="flex items-center gap-1.5 rounded-md border border-hairline bg-gray-50 px-2 py-1 text-[12px] text-muted">
+            <span className={'h-1.5 w-1.5 rounded-full ' + (session?.status === 'expiring' ? 'bg-amber-500' : 'bg-emerald-500')} />
+            <span className="text-muted">Session:</span>
+            <span className="font-medium text-ink">{session?.name || 'New browser session'}</span>
           </div>
           <div
             onClick={onClose}
@@ -364,23 +369,8 @@ export default function SandboxModal({ onClose, onSaveRecording }) {
                   />
                 </div>
               ) : showInstructions ? (
-                <div className="flex flex-1 items-center justify-center pt-10">
-                  <div className="w-full max-w-[520px]">
-                    <h2 className="mb-6 text-center text-[22px] font-bold text-ink">
-                      How to record the browser navigation?
-                    </h2>
-                    {STEPS.map((step, i) => (
-                      <div
-                        key={i}
-                        className="mb-3 flex items-center gap-3.5 rounded-[10px] bg-[#f6f7f9] px-[18px] py-3.5 text-sm text-gray-700"
-                      >
-                        <span className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-xs font-semibold text-gray-600">
-                          {i + 1}
-                        </span>
-                        {step}
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex flex-1 items-center justify-center">
+                  <div className="text-sm text-gray-400">Browser Navigation</div>
                 </div>
               ) : null}
             </div>
@@ -391,6 +381,7 @@ export default function SandboxModal({ onClose, onSaveRecording }) {
                 onReplay={startReplay}
                 onStopReplay={stopReplay}
                 onSaveRecording={onSaveRecording}
+                session={session}
                 phase={phase}
                 steps={steps}
                 onStart={handleStart}
