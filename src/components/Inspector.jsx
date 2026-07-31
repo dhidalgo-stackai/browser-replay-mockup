@@ -1050,9 +1050,9 @@ export function ConnectionSelect({ savedRecording, recordings = [], initialSelec
             disabled={disabled}
             onClick={() => !disabled && setOpen((o) => !o)}
             className={
-              fieldInputClass +
+              fieldInputClass.replace('bg-white', disabled ? 'bg-gray-50' : 'bg-white') +
               ' flex w-full items-center justify-between text-left ' +
-              (disabled ? 'cursor-not-allowed bg-gray-50 text-gray-400' : '')
+              (disabled ? 'cursor-not-allowed text-gray-400' : '')
             }
           >
             <span className={'truncate ' + (selected && !disabled ? '' : 'text-gray-400')}>{selected?.name || 'Continue without connection'}</span>
