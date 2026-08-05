@@ -878,21 +878,89 @@ function NewRecordingButton({ onOpen }) {
   )
 }
 
+function NewSessionButton({ onOpen }) {
+  const [open, setOpen] = useState(false)
+  const [subOpen, setSubOpen] = useState(false)
+  const [subPos, setSubPos] = useState({ top: 0, left: 0 })
+  const ref = useRef(null)
+  const subTriggerRef = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setSubOpen(false) } }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+  useEffect(() => {
+    if (!subOpen || !subTriggerRef.current) return
+    const r = subTriggerRef.current.getBoundingClientRect()
+    const width = 260
+    setSubPos({ top: r.top, left: Math.max(8, r.left - width - 4) })
+  }, [subOpen])
+  const pick = (session) => {
+    setOpen(false)
+    setSubOpen(false)
+    onOpen(session)
+  }
+  return (
+    <div ref={ref} className="relative inline-flex">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
+      >
+        <Plus size={14} sw={2.2} /> New session
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-[280px] overflow-visible rounded-lg border border-hairline bg-white py-1 shadow-lg">
+          <button
+            onClick={() => pick(null)}
+            className="flex w-full items-center px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
+          >
+            New browser session
+          </button>
+          <div
+            ref={subTriggerRef}
+            onMouseEnter={() => setSubOpen(true)}
+            onMouseLeave={() => setSubOpen(false)}
+          >
+            <button className="flex w-full items-center justify-between gap-2 whitespace-nowrap px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50">
+              <span>Use existing browser session</span>
+              <ChevronDown size={12} className="-rotate-90" />
+            </button>
+            {subOpen && (
+              <div
+                onMouseEnter={() => setSubOpen(true)}
+                onMouseLeave={() => setSubOpen(false)}
+                style={{ position: 'fixed', top: subPos.top, left: subPos.left, width: 260 }}
+                className="z-[60] rounded-lg border border-hairline bg-white py-1 shadow-lg"
+              >
+                {SESSIONS.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => pick(s)}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
+                  >
+                    <span className={'h-1.5 w-1.5 flex-shrink-0 rounded-full ' + (s.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500')} />
+                    <span className="min-w-0 truncate">{s.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function BrowserAutomationPage() {
   const [filter, setFilter] = useState('all')
   const [q, setQ] = useState('')
   const [importOpen, setImportOpen] = useState(false)
   const [sandboxOpen, setSandboxOpen] = useState(false)
   const [sandboxSession, setSandboxSession] = useState(null)
+  const [sandboxMode, setSandboxMode] = useState('recording')
   const [credentialOpen, setCredentialOpen] = useState(false)
-  const [newSessionOpen, setNewSessionOpen] = useState(false)
   const active = useHashSubroute()
-  useEffect(() => {
-    if (!newSessionOpen) return
-    const onDoc = (e) => { if (!e.target.closest('[data-new-session-menu]')) setNewSessionOpen(false) }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [newSessionOpen])
 
   const filtered = RECORDINGS.filter(r => {
     if (filter === 'org' && !r.org) return false
@@ -921,43 +989,14 @@ export default function BrowserAutomationPage() {
                   <Upload size={14} /> Import
                 </button>
                 <NewRecordingButton
-                  onOpen={(session) => { setSandboxSession(session); setSandboxOpen(true) }}
+                  onOpen={(session) => { setSandboxMode('recording'); setSandboxSession(session); setSandboxOpen(true) }}
                 />
               </>
             )}
             {active === 'sessions' && (
-              <div className="relative inline-flex" data-new-session-menu>
-                <button
-                  onClick={() => setNewSessionOpen((v) => !v)}
-                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:opacity-90"
-                >
-                  <Plus size={14} sw={2.2} /> New session
-                </button>
-                {newSessionOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-1 w-[280px] overflow-visible rounded-lg border border-hairline bg-white py-1 shadow-lg">
-                    <div className="px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-muted">Add to connection</div>
-                    {CONNECTION_GROUPS.map((g) => (
-                      <button
-                        key={g.id}
-                        onClick={() => { setNewSessionOpen(false); setSandboxSession(null); setSandboxOpen(true) }}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
-                      >
-                        <span className="flex h-4 w-4 items-center justify-center rounded bg-white text-orange-500 ring-1 ring-hairline">
-                          <Monitor size={10} />
-                        </span>
-                        <span className="min-w-0 truncate">{g.label}</span>
-                      </button>
-                    ))}
-                    <div className="my-1 border-t border-hairline" />
-                    <button
-                      onClick={() => { setNewSessionOpen(false); setCredentialOpen(true) }}
-                      className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink hover:bg-gray-50"
-                    >
-                      <Plus size={12} sw={2.2} /> New browser connection
-                    </button>
-                  </div>
-                )}
-              </div>
+              <NewSessionButton
+                onOpen={(session) => { setSandboxMode('session'); setSandboxSession(session); setSandboxOpen(true) }}
+              />
             )}
           </div>
         </div>
@@ -1001,7 +1040,7 @@ export default function BrowserAutomationPage() {
 
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
       {credentialOpen && <NewCredentialModal onClose={() => setCredentialOpen(false)} />}
-      {sandboxOpen && <SandboxModal session={sandboxSession} onClose={() => setSandboxOpen(false)} onSaveRecording={() => setSandboxOpen(false)} />}
+      {sandboxOpen && <SandboxModal mode={sandboxMode} session={sandboxSession} onClose={() => setSandboxOpen(false)} onSaveRecording={() => setSandboxOpen(false)} />}
     </div>
   )
 }

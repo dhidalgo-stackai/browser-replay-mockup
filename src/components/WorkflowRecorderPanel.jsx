@@ -341,6 +341,65 @@ function SaveWorkflowModal({ onClose, onSave, stepCount, steps = [] }) {
   )
 }
 
+function SaveSessionModal({ onClose, onSave }) {
+  const d = new Date()
+  const mo = d.toLocaleString('en-US', { month: 'short' })
+  const [sessionName, setSessionName] = useState(`New browser session — ${mo} ${d.getDate()}`)
+  const [connectionName, setConnectionName] = useState('New browser connection')
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      className="absolute inset-0 z-20 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4"
+    >
+      <div className="w-full overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+        <div className="border-b border-hairline px-5 py-3.5 text-[14px] font-semibold text-ink">
+          Save browser session
+        </div>
+        <div className="px-5 pb-4 pt-4">
+          <p className="mb-3 text-[12px] leading-relaxed text-muted">
+            We'll store the cookies and credentials from this session. No steps were recorded.
+            Attach it to a connection so recordings can reuse the login.
+          </p>
+
+          <label className="mb-1 block text-[11.5px] text-muted">Browser session name <span className="text-red-500">*</span></label>
+          <input
+            value={sessionName}
+            onChange={(e) => setSessionName(e.target.value)}
+            placeholder="e.g., Salesforce — David"
+            className="mb-2.5 w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12.5px] text-ink outline-none placeholder:text-gray-400 focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
+          />
+
+          <label className="mb-1 block text-[11.5px] text-muted">Attach to connection <span className="text-red-500">*</span></label>
+          <input
+            value={connectionName}
+            onChange={(e) => setConnectionName(e.target.value)}
+            placeholder="Connection name"
+            className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12.5px] text-ink outline-none placeholder:text-gray-400 focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
+          />
+          <div className="mt-1 text-[10.5px] text-muted">
+            A new connection will be created. You can rename it later.
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50 px-5 py-3">
+          <button
+            onClick={onClose}
+            className="cursor-pointer rounded-lg px-3 py-2 text-[12.5px] font-medium text-muted hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave({ sessionName, connectionName })}
+            disabled={!sessionName.trim() || !connectionName.trim()}
+            className="cursor-pointer rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Save session
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function RecordingTimer() {
   const [seconds, setSeconds] = useState(0)
   useEffect(() => {
@@ -350,8 +409,73 @@ function RecordingTimer() {
   return <span className="tabular-nums">{formatTime(seconds)}</span>
 }
 
-function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopReplay, onDelete, timerKey, stepCount, replaying, hasCreds }) {
+function PrimaryActions({ phase, onStart, onFinish, onSave, onReplay, onStopReplay, onDelete, timerKey, stepCount, replaying, hasCreds, sessionMode = false }) {
   let topRow
+  if (sessionMode) {
+    if (phase === 'idle') {
+      topRow = (
+        <button
+          onClick={onStart}
+          className="flex h-8 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-ink px-3 text-[13px] font-medium text-white hover:opacity-90"
+        >
+          <span className="h-2 w-2 rounded-full bg-red-500" />
+          Start capturing session
+        </button>
+      )
+    } else if (phase === 'recording') {
+      topRow = (
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={onDelete}
+            title="Cancel"
+            className="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-ink"
+          >
+            <TrashIcon size={15} />
+          </button>
+          <button
+            onClick={onFinish}
+            className="flex h-8 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-red-500 px-3 text-[13px] font-semibold text-white hover:bg-red-600"
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/25">
+              <span className="h-2 w-2 rounded-[1px] bg-white" />
+            </span>
+            Finish
+            <RecordingTimer key={timerKey} />
+          </button>
+        </div>
+      )
+    } else {
+      topRow = (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onDelete}
+            title="Discard session"
+            className="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+          >
+            <TrashIcon size={15} />
+          </button>
+          <button
+            onClick={onSave}
+            className="h-8 flex-1 cursor-pointer rounded-lg bg-ink px-3 text-[13px] font-medium text-white hover:opacity-90"
+          >
+            Save session
+          </button>
+        </div>
+      )
+    }
+    return (
+      <div className="flex flex-col gap-2">
+        {topRow}
+        <div className="flex h-8 items-center justify-center text-[11.5px] text-muted">
+          {phase === 'finished'
+            ? 'Cookies and credentials captured'
+            : phase === 'recording'
+            ? 'Log in to the site to capture your session'
+            : 'No steps will be recorded — only session credentials'}
+        </div>
+      </div>
+    )
+  }
   if (phase === 'idle') {
     topRow = (
       <button
@@ -447,7 +571,10 @@ export default function WorkflowRecorderPanel({
   replaying = false,
   replayIndex = 0,
   replayDone = false,
+  mode = 'recording',
+  captured = [],
 }) {
+  const sessionMode = mode === 'session'
   const [saveOpen, setSaveOpen] = useState(false)
   const [confirmEditOpen, setConfirmEditOpen] = useState(false)
   const [postSaveOpen, setPostSaveOpen] = useState(false)
@@ -483,7 +610,7 @@ export default function WorkflowRecorderPanel({
           <StackAILogo size={15} />
         </div>
         <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold">
-          Workflow Recorder
+          {sessionMode ? 'Session Recorder' : 'Workflow Recorder'}
         </div>
         <div className="ml-1 flex gap-0.5">
           <HeaderIconBtn title="Pin panel">
@@ -497,12 +624,69 @@ export default function WorkflowRecorderPanel({
 
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto border-b border-gray-100 px-4 pb-4 pt-3 bg-gray-50/70">
-          {phase === 'idle' && (
+          {sessionMode && captured.length === 0 && (
+            <div className="rounded-lg border border-dashed border-gray-200 px-3 py-5 text-center text-[12px] text-muted">
+              Log in to the site to capture credentials.
+            </div>
+          )}
+
+          {sessionMode && captured.map((c, i) => {
+            const label = c.detail ? `${c.label} — ${c.detail}` : c.label
+            let icon
+            if (c.kind === 'creds') {
+              icon = (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                </svg>
+              )
+            } else if (c.kind === 'cookie') {
+              icon = (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12a9 9 0 1 1-9-9 4 4 0 0 0 4 4 4 4 0 0 0 4 4 4 4 0 0 0 1 .13" />
+                  <path d="M8.5 8.5v.01" />
+                  <path d="M16 15.5v.01" />
+                  <path d="M12 12v.01" />
+                  <path d="M11 17v.01" />
+                  <path d="M7 14v.01" />
+                </svg>
+              )
+            } else if (c.kind === 'sso') {
+              icon = (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+              )
+            } else if (c.kind === 'mfa') {
+              icon = (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              )
+            } else {
+              icon = <NavigateIcon />
+            }
+            return (
+              <div key={i} className="group relative flex items-center gap-2.5 pb-2 last:pb-0">
+                <span className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500">
+                  {icon}
+                </span>
+                <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                  <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] text-ink">
+                    {label}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+          {!sessionMode && phase === 'idle' && (
             <div className="rounded-lg border border-dashed border-gray-200 px-3 py-5 text-center text-[12px] text-muted">
               No steps yet. Start a recording to capture your workflow.
             </div>
           )}
-          {(recording || finished) && (
+          {!sessionMode && (recording || finished) && (
             <div className="flex min-h-full flex-col">
               <div className="flex-1">
                 {steps.length === 0 && recording && (
@@ -541,6 +725,7 @@ export default function WorkflowRecorderPanel({
           phase={phase}
           timerKey={recordingId}
           stepCount={steps.length}
+          sessionMode={sessionMode}
           hasCreds={hasCredentialStep(steps)}
           onStart={() => {
             setRecordingId((n) => n + 1)
@@ -555,7 +740,7 @@ export default function WorkflowRecorderPanel({
         />
       </div>
 
-      {saveOpen && (
+      {saveOpen && !sessionMode && (
         <SaveWorkflowModal
           onClose={() => setSaveOpen(false)}
           stepCount={steps.length}
@@ -569,6 +754,17 @@ export default function WorkflowRecorderPanel({
         />
       )}
 
+      {saveOpen && sessionMode && (
+        <SaveSessionModal
+          onClose={() => setSaveOpen(false)}
+          onSave={({ sessionName }) => {
+            setSaveOpen(false)
+            setSavedName(sessionName)
+            setPostSaveOpen(true)
+          }}
+        />
+      )}
+
       {postSaveOpen && (
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setPostSaveOpen(false) }}
@@ -576,24 +772,28 @@ export default function WorkflowRecorderPanel({
         >
           <div className="anim-modal w-full overflow-hidden rounded-[14px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
             <div className="border-b border-hairline px-5 py-3.5 text-[14px] font-semibold text-ink">
-              Recording saved
+              {sessionMode ? 'Session saved' : 'Recording saved'}
             </div>
             <div className="px-5 py-4 text-[12.5px] leading-relaxed text-muted">
-              Edit steps, inputs, and connections anytime on the recording page.
+              {sessionMode
+                ? <>Your browser session and its connection <span className="font-medium text-ink">{savedName}</span> are saved. Recordings you attach to this session will use its stored credentials.</>
+                : 'Edit steps, inputs, and connections anytime on the recording page.'}
             </div>
             <div className="flex items-center justify-end gap-2 border-t border-hairline bg-gray-50 px-4 py-3">
-              <button
-                onClick={() => {
-                  const url = `${window.location.origin}${window.location.pathname}#/browser-automation/recording`
-                  window.open(url, '_blank', 'noopener,noreferrer')
-                  setPostSaveOpen(false)
-                  onDelete && onDelete()
-                  if (onSaveRecording) onSaveRecording({ name: savedName, inputs: savedInputs })
-                }}
-                className="cursor-pointer rounded-lg px-3 py-2 text-[12.5px] font-medium text-muted hover:bg-gray-100"
-              >
-                Edit steps
-              </button>
+              {!sessionMode && (
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}${window.location.pathname}#/browser-automation/recording`
+                    window.open(url, '_blank', 'noopener,noreferrer')
+                    setPostSaveOpen(false)
+                    onDelete && onDelete()
+                    if (onSaveRecording) onSaveRecording({ name: savedName, inputs: savedInputs })
+                  }}
+                  className="cursor-pointer rounded-lg px-3 py-2 text-[12.5px] font-medium text-muted hover:bg-gray-100"
+                >
+                  Edit steps
+                </button>
+              )}
               <button
                 onClick={() => {
                   setPostSaveOpen(false)
@@ -602,7 +802,7 @@ export default function WorkflowRecorderPanel({
                 }}
                 className="cursor-pointer rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-medium text-white hover:opacity-90"
               >
-                Stay in workflow
+                {sessionMode ? 'Done' : 'Stay in workflow'}
               </button>
             </div>
           </div>

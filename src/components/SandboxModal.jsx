@@ -50,6 +50,111 @@ const INITIAL_FORM = {
 }
 
 const DEFAULT_URL = 'stack-ai.com/sandbox/browser-navigation'
+const SESSION_LOGIN_URL = 'https://app.example.com/login'
+
+function SessionLoginPage({ signedIn, email, setEmail, password, setPassword, onSignIn }) {
+  const [remember, setRemember] = useState(true)
+  if (signedIn) {
+    return (
+      <div className="mx-auto flex w-full max-w-[380px] flex-col pt-10">
+        <div className="mb-6 flex items-center justify-center gap-2 text-[15px] font-semibold text-ink">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-ink text-white">A</span>
+          <span>Acme Portal</span>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white px-6 py-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <h1 className="mb-1 text-[18px] font-semibold text-ink">You're signed in</h1>
+          <p className="mb-5 text-[12.5px] text-muted">
+            Welcome back{email ? `, ${email}` : ''}. Your session is active.
+          </p>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-left text-[11.5px] text-muted">
+            <div className="mb-1 font-medium text-ink">Session details</div>
+            <div>Signed in as <span className="text-ink">{email || 'user@company.com'}</span></div>
+            <div>Session token: <span className="font-mono text-ink">acme_sess_84f…c1e</span></div>
+          </div>
+        </div>
+        <p className="mt-4 text-center text-[11.5px] text-muted">
+          Click <span className="font-medium text-ink">Save session</span> in the panel to store these credentials.
+        </p>
+      </div>
+    )
+  }
+  return (
+    <div className="mx-auto flex w-full max-w-[380px] flex-col pt-10">
+      <div className="mb-6 flex items-center justify-center gap-2 text-[15px] font-semibold text-ink">
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-ink text-white">A</span>
+        <span>Acme Portal</span>
+      </div>
+      <div className="rounded-xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+        <h1 className="mb-1 text-[18px] font-semibold text-ink">Sign in</h1>
+        <p className="mb-5 text-[12.5px] text-muted">
+          Log in with the account you want this browser session to remember.
+        </p>
+
+        <label className="mb-1 block text-[12px] font-medium text-gray-700">Email</label>
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@company.com"
+          className="mb-3 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-ink outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+        />
+
+        <label className="mb-1 block text-[12px] font-medium text-gray-700">Password</label>
+        <input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          type="password"
+          placeholder="••••••••"
+          className="mb-3 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-ink outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+        />
+
+        <label className="mb-4 flex items-center gap-2 text-[12.5px] text-ink">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+            className="h-3.5 w-3.5"
+          />
+          Keep me signed in
+        </label>
+
+        <button
+          onClick={() => onSignIn && onSignIn({ email, password, remember })}
+          className="w-full rounded-md bg-blue-600 py-2 text-[13px] font-medium text-white hover:bg-blue-700"
+        >
+          Sign in
+        </button>
+
+        <div className="mt-4 flex items-center gap-2 text-[11.5px] text-muted">
+          <span className="h-px flex-1 bg-gray-200" />
+          or continue with
+          <span className="h-px flex-1 bg-gray-200" />
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            onClick={() => onSignIn && onSignIn({ email: email || 'user@company.com', password: 'sso', remember: true, provider: 'Google' })}
+            className="rounded-md border border-gray-300 bg-white py-1.5 text-[12.5px] text-ink hover:bg-gray-50"
+          >
+            Google
+          </button>
+          <button
+            onClick={() => onSignIn && onSignIn({ email: email || 'user@company.com', password: 'sso', remember: true, provider: 'SSO' })}
+            className="rounded-md border border-gray-300 bg-white py-1.5 text-[12.5px] text-ink hover:bg-gray-50"
+          >
+            SSO
+          </button>
+        </div>
+      </div>
+      <p className="mt-4 text-center text-[11.5px] text-muted">
+        This is a sample login. Any credentials you enter stay in this sandbox.
+      </p>
+    </div>
+  )
+}
 
 const HARDCODED_STEPS = [
   'Navigate to https://www.google.com/search?q=contact+form',
@@ -77,7 +182,8 @@ function extractUrl(step) {
   return m ? m[0] : step
 }
 
-export default function SandboxModal({ onClose, onSaveRecording, session = null }) {
+export default function SandboxModal({ onClose, onSaveRecording, session = null, mode = 'recording' }) {
+  const sessionMode = mode === 'session'
   const [recorderOpen, setRecorderOpen] = useState(false)
 
   // Recording state (lifted from panel)
@@ -85,10 +191,15 @@ export default function SandboxModal({ onClose, onSaveRecording, session = null 
   const [steps, setSteps] = useState([])
 
   // Fake browser state
-  const [page, setPage] = useState('home') // 'home' | 'results' | 'form1' | 'form2' | 'done'
+  const [page, setPage] = useState('home') // 'home' | 'results' | 'form1' | 'form2' | 'done' | 'login' | 'loggedIn'
   const [addressValue, setAddressValue] = useState('')
   const [query, setQuery] = useState('')
   const [formData, setFormData] = useState(INITIAL_FORM)
+
+  // Session-mode state
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [captured, setCaptured] = useState([]) // [{ kind, label, detail }]
 
   // Replay state
   const [replaySteps, setReplaySteps] = useState(null)
@@ -98,9 +209,10 @@ export default function SandboxModal({ onClose, onSaveRecording, session = null 
 
   const liveKeysRef = useRef({}) // key -> step index
 
-  const addStep = (label) => setSteps((s) => [...s, label])
+  const addStep = (label) => { if (sessionMode) return; setSteps((s) => [...s, label]) }
 
   const setLiveStep = (key, label) => {
+    if (sessionMode) return
     setSteps((prev) => {
       const idx = liveKeysRef.current[key]
       if (idx != null && idx < prev.length) {
@@ -123,15 +235,36 @@ export default function SandboxModal({ onClose, onSaveRecording, session = null 
     setAddressValue('')
     setQuery('')
     setFormData(INITIAL_FORM)
+    setLoginEmail('')
+    setLoginPassword('')
+    setCaptured([])
     liveKeysRef.current = {}
+  }
+
+  const handleSignIn = ({ email, password, remember, provider }) => {
+    setPage('loggedIn')
+    setAddressValue('https://app.example.com/dashboard')
+    const items = []
+    if (provider) {
+      items.push({ kind: 'sso', label: `${provider} SSO`, detail: email })
+    } else {
+      items.push({ kind: 'creds', label: 'Saved credentials', detail: email || 'user@company.com' })
+    }
+    items.push({ kind: 'cookie', label: 'Session cookie', detail: 'acme_sess_84f…c1e' })
+    items.push({ kind: 'mfa', label: 'MFA token', detail: 'Trusted device · 30 days' })
+    setCaptured(items)
   }
 
   const handleStart = () => {
     resetSandbox()
+    if (sessionMode) {
+      setAddressValue(SESSION_LOGIN_URL)
+      setPage('login')
+    }
     setPhase('recording')
   }
   const handleFinish = () => {
-    setSteps(HARDCODED_STEPS)
+    if (!sessionMode) setSteps(HARDCODED_STEPS)
     liveKeysRef.current = {}
     setPhase('finished')
   }
@@ -220,7 +353,7 @@ export default function SandboxModal({ onClose, onSaveRecording, session = null 
             <span className="text-muted">
               <Globe size={18} />
             </span>
-            Browser Navigation Recorder
+            {mode === 'session' ? 'Browser Session Recorder' : 'Browser Navigation Recorder'}
           </div>
           <div className="flex items-center gap-1.5 rounded-md border border-hairline bg-gray-50 px-2 py-1 text-[12px] text-muted">
             <span className={'h-1.5 w-1.5 rounded-full ' + (session?.status === 'expiring' ? 'bg-amber-500' : 'bg-emerald-500')} />
@@ -355,6 +488,21 @@ export default function SandboxModal({ onClose, onSaveRecording, session = null 
                     This would be replaying browser
                   </div>
                 </div>
+              ) : sessionMode && showFakeSite ? (
+                <div className="flex-1">
+                  <SessionLoginPage
+                    signedIn={page === 'loggedIn'}
+                    email={loginEmail}
+                    setEmail={setLoginEmail}
+                    password={loginPassword}
+                    setPassword={setLoginPassword}
+                    onSignIn={handleSignIn}
+                  />
+                </div>
+              ) : sessionMode && showInstructions ? (
+                <div className="flex flex-1 items-center justify-center">
+                  <div className="text-sm text-gray-400">Click "Start capturing session" to begin</div>
+                </div>
               ) : showFakeSite ? (
                 <div className="flex-1">
                   <FakeSite
@@ -377,6 +525,8 @@ export default function SandboxModal({ onClose, onSaveRecording, session = null 
 
             {recorderOpen && (
               <WorkflowRecorderPanel
+                mode={mode}
+                captured={captured}
                 onClose={() => setRecorderOpen(false)}
                 onReplay={startReplay}
                 onStopReplay={stopReplay}
